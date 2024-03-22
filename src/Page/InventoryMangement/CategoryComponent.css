@@ -1,0 +1,55 @@
+.category-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.create-category {
+  margin-top: 4%;
+}
+
+.create-category input {
+  margin-right: 10px;
+}
+
+.categories-container {
+  width: 60%;
+  margin-top: 15px;
+  margin-left: 15%;
+}
+
+.category-list-container {
+  max-height: 300px;
+  overflow-y: auto;
+}
+::-webkit-scrollbar {
+  display: none;
+}
+
+.category-list {
+  list-style: none;
+  padding: 0;
+}
+
+.category-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 5px;
+  background-color: aliceblue;
+  margin-bottom: 20px;
+  padding: 10px;
+}
+
+.delete-icon {
+  cursor: pointer;
+  margin-left: 10px;
+}
+
+.delete-icon svg {
+  width: 20px;
+  height: 20px;
+}
+.thethings {
+  width: 100%;
+}
