@@ -7,6 +7,7 @@ import Button from "@mui/material/Button";
 import AddIcon from "@mui/icons-material/Add";
 import ListItem from "@mui/material/ListItem";
 import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 export default function ProductManagement() {
   const navigate = useNavigate();
@@ -34,7 +35,24 @@ export default function ProductManagement() {
                 Export Product
               </ListItem>
             </Button>
-
+            <Button
+              sx={{ background: "orange" }}
+              variant="contained"
+              component={Link}
+              to="/brandmanagement"
+            >
+              <AddIcon sx={{ mr: 1 }} />
+              Brand Management
+            </Button>
+            <Button
+              sx={{ background: "orange" }}
+              variant="contained"
+              component={Link}
+              to="/categorymanagement"
+            >
+              <AddIcon sx={{ mr: 1 }} />
+              Category Management
+            </Button>
             <Button sx={{ background: "orange" }} variant="contained">
               <AddIcon />
               <ListItem

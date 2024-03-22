@@ -121,24 +121,7 @@ export default function InventoryManagement() {
                 Add Banner
               </Button>
 
-              <Button
-                sx={{ background: "orange" }}
-                variant="contained"
-                component={Link}
-                to="/brandmanagement"
-              >
-                <AddIcon sx={{ mr: 1 }} />
-                Brand Management
-              </Button>
-              <Button
-                sx={{ background: "orange" }}
-                variant="contained"
-                component={Link}
-                to="/categorymanagement"
-              >
-                <AddIcon sx={{ mr: 1 }} />
-                Category Management
-              </Button>
+            
             </Box>
 
             <Box>

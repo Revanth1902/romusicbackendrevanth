@@ -21,6 +21,9 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
+import MenuItem from "@mui/material/MenuItem";
+import FormControl from "@mui/material/FormControl";
+import Select from "@mui/material/Select";
 
 const ProductList = () => {
   const [products, setProducts] = useState([]);
@@ -28,6 +31,7 @@ const ProductList = () => {
   const [order, setOrder] = useState("asc");
   const [orderBy, setOrderBy] = useState("name");
   const [searchQuery, setSearchQuery] = useState(""); // State for search query
+  const [searchCriteria, setSearchCriteria] = useState("name"); // State for search criteria
   const [deleteProductId, setDeleteProductId] = useState(null);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const navigate = useNavigate();
@@ -139,9 +143,14 @@ const ProductList = () => {
     setSearchQuery(e.target.value.toLowerCase());
   };
 
-  // Filter products based on search query
+  // Function to handle search criteria change
+  const handleSearchCriteriaChange = (e) => {
+    setSearchCriteria(e.target.value);
+  };
+
+  // Filter products based on search query and criteria
   const filteredProducts = sortedProducts.filter((product) =>
-    product.name.toLowerCase().includes(searchQuery)
+    product[searchCriteria].toLowerCase().includes(searchQuery)
   );
 
   return (
@@ -150,10 +159,10 @@ const ProductList = () => {
       <div style={{ marginBottom: "20px" }}>
         <input
           type="text"
-          placeholder="Search by product name"
+          placeholder="Search by keyword"
           onChange={handleSearch}
           style={{
-            padding: "10px",
+            padding: "19px",
             borderRadius: "5px",
             border: "1px solid #ccc",
             width: "100%",
@@ -162,6 +171,32 @@ const ProductList = () => {
             fontSize: "16px",
           }}
         />
+        <FormControl
+          style={{
+            padding: "1px",
+            borderRadius: "5px",
+            width: "20%",
+            maxWidth: "400px",
+            boxSizing: "border-box",
+            fontSize: "16px",
+            marginBottom: "20px",
+            height: "1px",
+          }}
+        >
+          <Select
+            value={searchCriteria}
+            onChange={handleSearchCriteriaChange}
+            displayEmpty
+            inputProps={{ "aria-label": "Search Criteria" }}
+          >
+            <MenuItem value="name">Name</MenuItem>
+            <MenuItem value="category">Category</MenuItem>
+            <MenuItem value="subCategory">Sub Category</MenuItem>
+            <MenuItem value="brand">Brand</MenuItem>
+            <MenuItem value="price">Price</MenuItem>
+            <MenuItem value="stock">Stock</MenuItem>
+          </Select>
+        </FormControl>
       </div>
       {loading ? (
         <div
@@ -169,7 +204,7 @@ const ProductList = () => {
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            height: "200px",
+            height: "100px",
           }}
         >
           <CircularProgress />
