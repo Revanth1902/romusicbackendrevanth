@@ -1,19 +1,36 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { ToastContainer, toast } from "react-toastify"; // Import toastify
-import "react-toastify/dist/ReactToastify.css"; // Import toastify CSS
 import "./brandsmanagement.css";
 import SideBar from "../../Component/SideBar";
 import Cookies from "js-cookie"; // Import Cookies library
 import DeleteIcon from "@mui/icons-material/Delete";
 import IconButton from "@mui/material/IconButton";
 import { ArrowUpward, ArrowDownward } from "@mui/icons-material";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+} from "@mui/material";
+
+import {
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Button,
+} from "@mui/material";
 
 const BrandsManagement = () => {
   const [brands, setBrands] = useState([]);
   const [newBrand, setNewBrand] = useState("");
   const [order, setOrder] = useState("asc"); // State for sorting order
   const [orderBy, setOrderBy] = useState("brandName"); // State for sorting column
+  const [confirmDelete, setConfirmDelete] = useState(null); // State for confirmation dialog
 
   useEffect(() => {
     fetchBrands();
@@ -58,32 +75,13 @@ const BrandsManagement = () => {
             },
           }
         );
-        toast.success("Brand added successfully"); // Show success toast
-        setNewBrand("");
+        // Show success toast
         fetchBrands();
+        setNewBrand("");
       } catch (error) {
         console.error("Error adding brand:", error);
-        toast.error("Failed to add brand"); // Show error toast
+        // Show error toast
       }
-    }
-  };
-
-  const handleDeleteBrand = async (brandId) => {
-    try {
-      const token = Cookies.get("token"); // Fetch user token from cookies
-      await axios.delete(
-        `https://e-commerce-backend-2ltj.onrender.com/api/v1/admin/brand/${brandId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`, // Include token in headers
-          },
-        }
-      );
-      toast.success("Brand deleted successfully"); // Show success toast
-      setBrands(brands.filter((brand) => brand._id !== brandId));
-    } catch (error) {
-      console.error("Error deleting brand:", error);
-      toast.error("Failed to delete brand"); // Show error toast
     }
   };
 
@@ -104,9 +102,39 @@ const BrandsManagement = () => {
     return 0;
   });
 
+  const handleDelete = (brandId) => {
+    // Open confirmation dialog
+    setConfirmDelete(brandId);
+  };
+
+  const handleDeleteConfirmed = async () => {
+    try {
+      const token = Cookies.get("token");
+      await axios.delete(
+        `https://e-commerce-backend-2ltj.onrender.com/api/v1/admin/brand/${confirmDelete}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      // Show success toast
+      fetchBrands();
+    } catch (error) {
+      console.error("Error deleting brand:", error);
+      // Show error toast
+    } finally {
+      // Close confirmation dialog
+      setConfirmDelete(null);
+    }
+  };
+
+  const handleSortDirection = (property) => {
+    return orderBy === property ? order : "asc";
+  };
+
   return (
     <div className="brands-management">
-      <ToastContainer /> {/* Toast container */}
       <SideBar />
       <div className="add-brand">
         <input
@@ -115,37 +143,73 @@ const BrandsManagement = () => {
           onChange={(e) => setNewBrand(e.target.value)}
           placeholder="Enter brand name"
         />
-        <button onClick={handleAddBrand}>Add Brand</button>
+        <button className="theaddbrandbutton" onClick={handleAddBrand}>
+          Add Brand
+        </button>
       </div>
       {brands.length === 0 ? (
         <div className="no-brands-message">No brands available or added.</div>
       ) : (
-        <div className="brands-list">
-          <div className="brands-header">
-            <span onClick={() => handleSort("brandName")}>
-              Brand Name
-              {orderBy === "brandName" ? (
-                order === "asc" ? (
-                  <ArrowUpward />
-                ) : (
-                  <ArrowDownward />
-                )
-              ) : null}
-            </span>
-          </div>
-          {sortedBrands.map((brand) => (
-            <div key={brand._id} className="brand-item">
-              <span>{brand.brandName}</span>
-              <IconButton
-                color="secondary"
-                onClick={() => handleDeleteBrand(brand._id)}
-              >
-                <DeleteIcon />
-              </IconButton>
-            </div>
-          ))}
-        </div>
+        <TableContainer
+          component={Paper}
+          style={{ width: "60%", marginLeft: "15%", marginBottom: "2%" }}
+        >
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>
+                  <span onClick={() => handleSort("brandName")}>
+                    Brand Name
+                    {orderBy === "brandName" ? (
+                      order === "asc" ? (
+                        <ArrowUpward />
+                      ) : (
+                        <ArrowDownward />
+                      )
+                    ) : null}
+                  </span>
+                </TableCell>
+                <TableCell>Action</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {sortedBrands.map((brand) => (
+                <TableRow key={brand._id}>
+                  <TableCell>{brand.brandName}</TableCell>
+                  <TableCell>
+                    <IconButton
+                      color="secondary"
+                      onClick={() => handleDelete(brand._id)}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
       )}
+      {/* Confirmation Dialog */}
+      <Dialog
+        open={confirmDelete !== null}
+        onClose={() => setConfirmDelete(null)}
+      >
+        <DialogTitle>Confirm Deletion</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete this brand?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteConfirmed} color="primary">
+            Delete
+          </Button>
+          <Button onClick={() => setConfirmDelete(null)} color="primary">
+            Cancel
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };

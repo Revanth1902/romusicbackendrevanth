@@ -21,6 +21,8 @@ const Coupons = () => {
   const [order, setOrder] = useState("asc"); // State for sorting order
   const [orderBy, setOrderBy] = useState("code"); // State for sorting column
   const [showAddCouponModal, setShowAddCouponModal] = useState(false); // State for showing add coupon modal
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false); // State for showing delete confirmation dialog
+  const [couponToDelete, setCouponToDelete] = useState(null); // State to store the coupon being deleted
 
   useEffect(() => {
     fetchAllCoupons();
@@ -73,6 +75,11 @@ const Coupons = () => {
     }
   };
 
+  const handleDeleteConfirmation = (coupon) => {
+    setCouponToDelete(coupon);
+    setShowDeleteConfirmation(true);
+  };
+
   const handleDeleteCoupon = async (id) => {
     try {
       const token = Cookies.get("token");
@@ -91,6 +98,11 @@ const Coupons = () => {
     } catch (error) {
       console.error("Error deleting coupon:", error);
       toast.error("Failed to delete coupon");
+    } finally {
+      // Reset editCouponData and hide the delete confirmation dialog
+      setEditCouponData(null);
+      setShowDeleteConfirmation(false);
+      fetchAllCoupons();
     }
   };
 
@@ -149,8 +161,7 @@ const Coupons = () => {
     <>
       <SideBar />
       <div className="coupons-container">
-        <button onClick={() => setShowAddCouponModal(true)}>Add Coupon</button>
-
+        <SideBar />
         <div className="coupons-list-header">
           <div className="coupon-field" onClick={() => handleSort("code")}>
             Code {getSortIcon("code")}
@@ -172,30 +183,52 @@ const Coupons = () => {
 
         <div className="coupons-list-container">
           <div className="coupons-list">
-            {coupons.length === 0 && (
+            {coupons.length === 0 ? (
               <p>No coupons available at this moment.</p>
-            )}
-            {sortedCoupons.map((coupon) => (
-              <div key={coupon._id} className="coupon-item">
-                <div className="coupon-field">{coupon.code}</div>
-                <div className="coupon-field">{coupon.amount}</div>
-                <div className="coupon-field">{coupon.description}</div>
-                <div className="coupon-field">{coupon.limit}</div>
-                <div className="coupon-field">
-                  <EditIcon
-                    className="edit-icon"
-                    onClick={() => handleEditCoupon(coupon)}
-                  />
-                  <DeleteIcon
-                    className="delete-icon"
-                    onClick={() => handleDeleteCoupon(coupon._id)}
-                  />
+            ) : (
+              sortedCoupons.map((coupon) => (
+                <div key={coupon._id} className="coupon-item">
+                  <div className="coupon-field">{coupon.code}</div>
+                  <div className="coupon-field">{coupon.amount}</div>
+                  <div className="coupon-field">{coupon.description}</div>
+                  <div className="coupon-field">{coupon.limit}</div>
+                  <div className="coupon-field">
+                    <EditIcon
+                      className="edit-icon"
+                      onClick={() => handleEditCoupon(coupon)}
+                    />
+                    <DeleteIcon
+                      className="delete-icon"
+                      onClick={() => handleDeleteConfirmation(coupon)}
+                    />
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
 
+        <ToastContainer />
+
+        {showDeleteConfirmation && (
+          <div className="delete-confirmation-modal">
+            <div className="modal-content">
+              <h2>Confirm Deletion</h2>
+              <p>Are you sure you want to delete this coupon?</p>
+              <div className="delete-confirmation-buttons">
+                <button onClick={() => handleDeleteCoupon(couponToDelete._id)}>
+                  Delete
+                </button>
+
+                <button onClick={() => setShowDeleteConfirmation(false)}>
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Add Coupon Modal */}
         {showAddCouponModal && (
           <div className="add-coupon-modal">
             <div className="modal-content">
@@ -213,7 +246,10 @@ const Coupons = () => {
                 placeholder="Amount"
                 value={newCouponData.amount}
                 onChange={(e) =>
-                  setNewCouponData({ ...newCouponData, amount: e.target.value })
+                  setNewCouponData({
+                    ...newCouponData,
+                    amount: e.target.value,
+                  })
                 }
               />
               <input
@@ -235,14 +271,15 @@ const Coupons = () => {
                   setNewCouponData({ ...newCouponData, limit: e.target.value })
                 }
               />
-              <button onClick={handleAddCoupon}>Submit</button>
               <button onClick={() => setShowAddCouponModal(false)}>
                 Cancel
               </button>
+              <button onClick={handleAddCoupon}>Submit</button>
             </div>
           </div>
         )}
 
+        {/* Edit Coupon Modal */}
         {editCouponData && (
           <div className="edit-coupon-modal">
             <div className="modal-content">
@@ -296,8 +333,6 @@ const Coupons = () => {
             </div>
           </div>
         )}
-
-        <ToastContainer />
       </div>
     </>
   );

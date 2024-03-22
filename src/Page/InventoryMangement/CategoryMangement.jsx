@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { useCookies } from "react-cookie";
 import axios from "axios";
 import Cookies from "js-cookie";
 import { ToastContainer, toast } from "react-toastify";
@@ -9,23 +8,37 @@ import "./CategoryComponent.css"; // Import CSS file
 import DeleteIcon from "@mui/icons-material/Delete";
 import IconButton from "@mui/material/IconButton";
 import { ArrowUpward, ArrowDownward } from "@mui/icons-material";
-import { useNavigate } from "react-router-dom";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  Button,
+} from "@mui/material";
 
 const CategoryComponent = () => {
-  const [cookies, setCookie] = useCookies(["token"]);
-  const [tokenAvailable, setTokenAvailable] = useState(false);
-  const navigate = useNavigate();
-
   const [categories, setCategories] = useState([]);
   const [newCategoryName, setNewCategoryName] = useState("");
-  const [order, setOrder] = useState("asc"); // State for sorting order
-  const [orderBy, setOrderBy] = useState("categoryName"); // State for sorting column
+  const [order, setOrder] = useState("asc");
+  const [orderBy, setOrderBy] = useState("categoryName");
+  const [loading, setLoading] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(null);
 
   useEffect(() => {
     fetchCategories();
   }, []);
 
   const fetchCategories = async () => {
+    setLoading(true);
     try {
       const token = Cookies.get("token");
       const response = await axios.get(
@@ -33,14 +46,14 @@ const CategoryComponent = () => {
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            // Add other headers if needed
           },
         }
       );
-      const { categories } = response.data; // Extract categories from response
-      setCategories(categories); // Set categories in state
+      setCategories(response.data.categories);
     } catch (error) {
       console.error("Error fetching categories:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -131,24 +144,74 @@ const CategoryComponent = () => {
             )
           ) : null}
         </h2>
-        <div className="category-list-container">
-          <ul className="category-list">
-            {sortedCategories.map((category) => (
-              <li key={category._id} className="category-item">
-                {category.categoryName.charAt(0).toUpperCase() +
-                  category.categoryName.slice(1)}
-                <IconButton
-                  className="delete-icon"
-                  color="secondary"
-                  onClick={() => deleteCategory(category._id)}
-                >
-                  <DeleteIcon />
-                </IconButton>
-              </li>
-            ))}
-          </ul>
-        </div>
+        <TableContainer component={Paper} style={{ marginBottom: "2%" }}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Category Name</TableCell>
+                <TableCell>Action</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={2} align="center">
+                    <CircularProgress />
+                  </TableCell>
+                </TableRow>
+              ) : (
+                sortedCategories.map((category) => (
+                  <TableRow key={category._id}>
+                    <TableCell>
+                      {category.categoryName.charAt(0).toUpperCase() +
+                        category.categoryName.slice(1)}
+                    </TableCell>
+
+                    <TableCell>
+                      <IconButton
+                        color="secondary"
+                        onClick={() => setConfirmDelete(category._id)}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
       </div>
+
+      {/* Confirmation Dialog */}
+      <Dialog
+        open={!!confirmDelete}
+        onClose={() => setConfirmDelete(null)}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">Confirm Deletion</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            Are you sure you want to delete this category?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmDelete(null)} color="primary">
+            Cancel
+          </Button>
+          <Button
+            onClick={() => {
+              deleteCategory(confirmDelete);
+              setConfirmDelete(null);
+            }}
+            color="secondary"
+            autoFocus
+          >
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };

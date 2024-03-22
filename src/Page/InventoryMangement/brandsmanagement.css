@@ -24,7 +24,7 @@
   font-size: 16px;
 }
 
-.add-brand button {
+.theaddbrandbutton {
   padding: 8px 16px;
   background-color: #f58634;
   color: #fff;
@@ -32,9 +32,12 @@
   border-radius: 4px;
   cursor: pointer;
   font-size: 16px;
+  width: 50%;
+  align-self: center;
+  margin-bottom: 3%;
 }
 
-.add-brand button:hover {
+.theaddbrandbutton:hover {
   background-color: #0056b3;
 }
 

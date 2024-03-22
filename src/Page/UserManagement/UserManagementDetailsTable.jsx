@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import TableSortLabel from "@mui/material/TableSortLabel";
-
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import Table from "@mui/material/Table";
@@ -40,6 +39,7 @@ function EnhancedTable({ rows }) {
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState([]);
+  const [confirmDelete, setConfirmDelete] = useState(null); // State for confirmation dialog
 
   useEffect(() => {
     fetchUsers();
@@ -96,11 +96,16 @@ function EnhancedTable({ rows }) {
 
   const isSelected = (id) => selected.indexOf(id) !== -1;
 
-  const handleDelete = async (userId) => {
+  const handleDelete = (userId) => {
+    // Open confirmation dialog
+    setConfirmDelete(userId);
+  };
+
+  const handleDeleteConfirmed = async () => {
     try {
       const token = Cookies.get("token");
       const response = await axios.delete(
-        `https://e-commerce-backend-2ltj.onrender.com/api/v1/admin/user/${userId}`,
+        `https://e-commerce-backend-2ltj.onrender.com/api/v1/admin/user/${confirmDelete}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -116,6 +121,9 @@ function EnhancedTable({ rows }) {
     } catch (error) {
       console.error("Error deleting user:", error);
       toast.error("Failed to delete user");
+    } finally {
+      // Close confirmation dialog
+      setConfirmDelete(null);
     }
   };
 
@@ -259,6 +267,20 @@ function EnhancedTable({ rows }) {
         </>
       )}
       <ToastContainer />
+
+      {/* Confirmation Dialog */}
+      {confirmDelete && (
+        <div className="delete-confirmation-modal">
+          <div className="modal-content">
+            <h2>Confirm Deletion</h2>
+            <p>Are you sure you want to delete this user?</p>
+            <div className="delete-confirmation-buttons">
+              <button onClick={() => setConfirmDelete(null)}>Cancel</button>
+              <button onClick={handleDeleteConfirmed}>Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
     </Paper>
   );
 }

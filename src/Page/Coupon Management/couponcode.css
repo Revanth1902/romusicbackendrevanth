@@ -31,7 +31,7 @@
   flex: 1;
   text-align: center;
 }
-
+.delete-confirmation-modal,
 .add-coupon-modal,
 .edit-coupon-modal {
   position: fixed;

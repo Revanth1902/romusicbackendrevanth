@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import TableSortLabel from "@mui/material/TableSortLabel";
-
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -15,15 +14,24 @@ import Paper from "@mui/material/Paper";
 import IconButton from "@mui/material/IconButton";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import CircularProgress from "@mui/material/CircularProgress"; // Import CircularProgress
-import Cookies from "js-cookie"; // Import Cookies
+import CircularProgress from "@mui/material/CircularProgress";
+import Cookies from "js-cookie";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogTitle from "@mui/material/DialogTitle";
 
 const ProductList = () => {
   const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true); // State for loading indicator
+  const [loading, setLoading] = useState(true);
   const [order, setOrder] = useState("asc");
-  const [orderBy, setOrderBy] = useState("name"); // Default sorting by name
+  const [orderBy, setOrderBy] = useState("name");
+  const [searchQuery, setSearchQuery] = useState(""); // State for search query
+  const [deleteProductId, setDeleteProductId] = useState(null);
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const navigate = useNavigate();
+
   // Function to compare values for sorting
   function descendingComparator(a, b, orderBy) {
     if (b[orderBy] < a[orderBy]) {
@@ -57,12 +65,12 @@ const ProductList = () => {
 
   const fetchProducts = async () => {
     try {
-      const token = Cookies.get("token"); // Get the token from cookies
+      const token = Cookies.get("token");
       const response = await axios.get(
         "https://e-commerce-backend-2ltj.onrender.com/api/v1/admin/products",
         {
           headers: {
-            Authorization: `Bearer ${token}`, // Set the Authorization header
+            Authorization: `Bearer ${token}`,
           },
         }
       );
@@ -84,11 +92,16 @@ const ProductList = () => {
     navigate(`/editproduct/${productId}`);
   };
 
-  const handleDelete = async (productId) => {
+  const handleDeleteClick = (productId) => {
+    setDeleteProductId(productId);
+    setOpenDeleteDialog(true);
+  };
+
+  const handleDeleteConfirm = async () => {
     try {
       const token = Cookies.get("token");
       const response = await axios.delete(
-        `https://e-commerce-backend-2ltj.onrender.com/api/v1/admin/product/${productId}`,
+        `https://e-commerce-backend-2ltj.onrender.com/api/v1/admin/product/${deleteProductId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -97,14 +110,20 @@ const ProductList = () => {
       );
       if (response.data.success) {
         toast.success("Product deleted successfully");
-        fetchProducts(); // Refresh the product list
+        fetchProducts();
       } else {
         toast.error("Failed to delete product");
       }
     } catch (error) {
       console.error("Error deleting product:", error);
       toast.error("Failed to delete product");
+    } finally {
+      setOpenDeleteDialog(false);
     }
+  };
+
+  const handleDeleteCancel = () => {
+    setOpenDeleteDialog(false);
   };
 
   const handleRequestSort = (property) => {
@@ -115,10 +134,36 @@ const ProductList = () => {
 
   const sortedProducts = stableSort(products, getComparator(order, orderBy));
 
+  // Function to handle search
+  const handleSearch = (e) => {
+    setSearchQuery(e.target.value.toLowerCase());
+  };
+
+  // Filter products based on search query
+  const filteredProducts = sortedProducts.filter((product) =>
+    product.name.toLowerCase().includes(searchQuery)
+  );
+
   return (
     <div className="thethings">
       <h2>Product List</h2>
-      {loading ? ( // Show loader if loading is true
+      <div style={{ marginBottom: "20px" }}>
+        <input
+          type="text"
+          placeholder="Search by product name"
+          onChange={handleSearch}
+          style={{
+            padding: "10px",
+            borderRadius: "5px",
+            border: "1px solid #ccc",
+            width: "100%",
+            maxWidth: "400px",
+            boxSizing: "border-box",
+            fontSize: "16px",
+          }}
+        />
+      </div>
+      {loading ? (
         <div
           style={{
             display: "flex",
@@ -184,7 +229,7 @@ const ProductList = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {sortedProducts.map((product) => (
+              {filteredProducts.map((product) => (
                 <TableRow key={product._id}>
                   <TableCell>
                     {product.name.charAt(0).toUpperCase() +
@@ -208,7 +253,7 @@ const ProductList = () => {
                     </IconButton>
                     <IconButton
                       color="secondary"
-                      onClick={() => handleDelete(product._id)}
+                      onClick={() => handleDeleteClick(product._id)} // Changed to handleDeleteClick
                     >
                       <DeleteIcon />
                     </IconButton>
@@ -219,6 +264,25 @@ const ProductList = () => {
           </Table>
         </TableContainer>
       )}
+      <Dialog
+        open={openDeleteDialog}
+        onClose={handleDeleteCancel}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">Confirm Deletion</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            Are you sure you want to delete this product?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <button onClick={handleDeleteCancel}>Cancel</button>
+          <button onClick={handleDeleteConfirm} autoFocus>
+            Delete
+          </button>
+        </DialogActions>
+      </Dialog>
       <ToastContainer />
     </div>
   );

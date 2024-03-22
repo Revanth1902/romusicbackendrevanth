@@ -10,10 +10,17 @@ import Cookies from "js-cookie";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogTitle from "@mui/material/DialogTitle";
 
 export default function InventoryManagement() {
   const [banners, setBanners] = useState([]);
   const [sortByCategory, setSortByCategory] = useState(""); // State to handle sorting
+  const [deleteBannerId, setDeleteBannerId] = useState(null); // State to store the id of the banner to be deleted
+  const [openDialog, setOpenDialog] = useState(false); // State to control the dialog open state
 
   useEffect(() => {
     fetchAllBanners();
@@ -43,10 +50,15 @@ export default function InventoryManagement() {
   };
 
   const handleDeleteBanner = async (bannerId) => {
+    setDeleteBannerId(bannerId);
+    setOpenDialog(true);
+  };
+
+  const handleDeleteConfirmed = async () => {
     try {
       const token = Cookies.get("token");
       const response = await axios.delete(
-        `https://e-commerce-backend-2ltj.onrender.com/api/v1/admin/banner/${bannerId}`,
+        `https://e-commerce-backend-2ltj.onrender.com/api/v1/admin/banner/${deleteBannerId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -56,13 +68,16 @@ export default function InventoryManagement() {
       if (response.data.success) {
         // Remove the deleted banner from the state
         setBanners((prevBanners) =>
-          prevBanners.filter((banner) => banner._id !== bannerId)
+          prevBanners.filter((banner) => banner._id !== deleteBannerId)
         );
       } else {
         console.error("Failed to delete banner");
       }
     } catch (error) {
       console.error("Error deleting banner:", error);
+    } finally {
+      setOpenDialog(false);
+      setDeleteBannerId(null);
     }
   };
 
@@ -200,6 +215,28 @@ export default function InventoryManagement() {
           </Box>
         </Box>
       </Box>
+      {/* Confirmation Dialog */}
+      <Dialog
+        open={openDialog}
+        onClose={() => setOpenDialog(false)}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">{"Confirmation"}</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            Are you sure you want to delete this banner?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenDialog(false)} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={handleDeleteConfirmed} color="primary" autoFocus>
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
