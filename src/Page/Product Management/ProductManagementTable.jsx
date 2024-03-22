@@ -149,9 +149,12 @@ const ProductList = () => {
   };
 
   // Filter products based on search query and criteria
-  const filteredProducts = sortedProducts.filter((product) =>
-    product[searchCriteria].toLowerCase().includes(searchQuery)
-  );
+// Filter products based on search query and criteria
+const filteredProducts = sortedProducts.filter((product) => {
+  const fieldValue = String(product[searchCriteria]).toLowerCase();
+  return fieldValue.includes(searchQuery);
+});
+
 
   return (
     <div className="thethings">
