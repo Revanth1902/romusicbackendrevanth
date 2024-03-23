@@ -104,8 +104,7 @@ const PaymentsManagementnewproduct = () => {
   };
 
   // Handle image selection
-  const handleImageChange = (e) => {
-    const files = e.target.files;
+  const handleImageChange = (files, index) => {
     if (files) {
       const newImages = [...images];
       for (let i = 0; i < files.length; i++) {
@@ -197,7 +196,7 @@ const PaymentsManagementnewproduct = () => {
 
   return (
     <Box sx={{ display: "flex" }}>
-      <SideBar/>
+      <SideBar />
       <Box component="main" sx={{ flexGrow: 1, p: 3, marginTop: "55px" }}>
         <Typography variant="h4" gutterBottom>
           Add New Product
@@ -401,8 +400,9 @@ const PaymentsManagementnewproduct = () => {
                     style={{ display: "none" }}
                     id={`image-upload-${index}`}
                     type="file"
-                    onChange={(e) => handleImageChange(e, index)}
+                    onChange={(e) => handleImageChange(e.target.files, index)}
                   />
+
                   <label htmlFor={`image-upload-${index}`}>
                     <Button variant="contained" component="span">
                       Select Image {index + 1}
@@ -460,4 +460,3 @@ const PaymentsManagementnewproduct = () => {
 };
 
 export default PaymentsManagementnewproduct;
-

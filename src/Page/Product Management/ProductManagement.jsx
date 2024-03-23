@@ -94,19 +94,19 @@ export default function ProductManagement() {
     ]);
     XLSX.utils.sheet_add_aoa(ws, data, { origin: "A2" });
 
-    // Create a workbook and add the worksheet
+    // Create a workbook and add the worksheet-revanth
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Products");
 
-    // Generate Excel file buffer
+    // Generate Excel file buffer-revanth
     const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
 
-    // Convert buffer to Blob
+    // Convert buffer to Blob-revanth
     const blob = new Blob([excelBuffer], {
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     });
 
-    // Save Blob as Excel file using FileSaver.js
+    // Save Blob as Excel file using FileSaver.js-revanth
     saveAs(blob, "products.xlsx");
   };
 
