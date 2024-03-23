@@ -139,22 +139,33 @@ const ProductList = () => {
   const sortedProducts = stableSort(products, getComparator(order, orderBy));
 
   // Function to handle search
+  // Function to handle search
   const handleSearch = (e) => {
-    setSearchQuery(e.target.value.toLowerCase());
+    const query = e.target.value.toLowerCase();
+    setSearchQuery(query);
   };
 
-  // Function to handle search criteria change
-  const handleSearchCriteriaChange = (e) => {
-    setSearchCriteria(e.target.value);
-  };
+  // // Filter products based on search query
+  // Filter products based on search query
+  const filteredProducts = sortedProducts.filter((product) => {
+    // Convert each field to string and lowercase for comparison
+    const name = String(product.name).toLowerCase();
+    const category = String(product.category).toLowerCase();
+    const subCategory = String(product.subCategory).toLowerCase();
+    const brand = String(product.brand).toLowerCase();
+    const price = String(product.price).toLowerCase();
+    const stock = String(product.stock).toLowerCase();
 
-  // Filter products based on search query and criteria
-// Filter products based on search query and criteria
-const filteredProducts = sortedProducts.filter((product) => {
-  const fieldValue = String(product[searchCriteria]).toLowerCase();
-  return fieldValue.includes(searchQuery);
-});
-
+    // Check if any field contains the search query
+    return (
+      name.includes(searchQuery.toLowerCase()) ||
+      category.includes(searchQuery.toLowerCase()) ||
+      subCategory.includes(searchQuery.toLowerCase()) ||
+      brand.includes(searchQuery.toLowerCase()) ||
+      price.includes(searchQuery.toLowerCase()) ||
+      stock.includes(searchQuery.toLowerCase())
+    );
+  });
 
   return (
     <div className="thethings">
@@ -165,7 +176,7 @@ const filteredProducts = sortedProducts.filter((product) => {
           placeholder="Search by keyword"
           onChange={handleSearch}
           style={{
-            padding: "19px",
+            padding: "10px",
             borderRadius: "5px",
             border: "1px solid #ccc",
             width: "100%",
@@ -174,32 +185,6 @@ const filteredProducts = sortedProducts.filter((product) => {
             fontSize: "16px",
           }}
         />
-        <FormControl
-          style={{
-            padding: "1px",
-            borderRadius: "5px",
-            width: "20%",
-            maxWidth: "400px",
-            boxSizing: "border-box",
-            fontSize: "16px",
-            marginBottom: "20px",
-            height: "1px",
-          }}
-        >
-          <Select
-            value={searchCriteria}
-            onChange={handleSearchCriteriaChange}
-            displayEmpty
-            inputProps={{ "aria-label": "Search Criteria" }}
-          >
-            <MenuItem value="name">Name</MenuItem>
-            <MenuItem value="category">Category</MenuItem>
-            <MenuItem value="subCategory">Sub Category</MenuItem>
-            <MenuItem value="brand">Brand</MenuItem>
-            <MenuItem value="price">Price</MenuItem>
-            <MenuItem value="stock">Stock</MenuItem>
-          </Select>
-        </FormControl>
       </div>
       {loading ? (
         <div

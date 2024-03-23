@@ -197,7 +197,7 @@ const PaymentsManagementnewproduct = () => {
 
   return (
     <Box sx={{ display: "flex" }}>
-      <SideBar />
+      <SideBar/>
       <Box component="main" sx={{ flexGrow: 1, p: 3, marginTop: "55px" }}>
         <Typography variant="h4" gutterBottom>
           Add New Product
@@ -207,7 +207,7 @@ const PaymentsManagementnewproduct = () => {
             sx={{
               display: "flex",
               gap: 2,
-              alignItems: "center",
+              alignItems: "center", // Align items vertically centered
             }}
           >
             <TextField
@@ -218,13 +218,14 @@ const PaymentsManagementnewproduct = () => {
               margin="normal"
               sx={{ width: "70%" }} // Set the width to 70%
             />
-            <FormControl sx={{ width: "30%" }}>
+            <FormControl sx={{ width: "30%", marginTop: "0.6%" }}>
               <InputLabel id="brand-label">Select Brand</InputLabel>
               <Select
                 labelId="brand-label"
                 value={brand}
                 onChange={(e) => setBrand(e.target.value)}
                 fullWidth
+                style={{}}
               >
                 {brands.map((brand) => (
                   <MenuItem key={brand._id} value={brand.brandName}>
@@ -235,8 +236,14 @@ const PaymentsManagementnewproduct = () => {
             </FormControl>
           </Box>
 
-          <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-            <FormControl sx={{ flex: 1 }}>
+          <Box
+            sx={{
+              display: "flex",
+              gap: 2,
+              alignItems: "center",
+            }}
+          >
+            <FormControl sx={{ flex: 1, marginTop: "0.7%" }}>
               <InputLabel id="category-label">Select Category</InputLabel>
               <Select
                 labelId="category-label"
@@ -257,15 +264,6 @@ const PaymentsManagementnewproduct = () => {
               onChange={(e) => setSubCategory(e.target.value)}
               fullWidth
               margin="normal"
-              sx={{ flex: 1 }}
-            />
-            <TextField
-              label="Stock"
-              value={stock}
-              onChange={(e) => setStock(e.target.value)}
-              fullWidth
-              margin="normal"
-              type="number"
               sx={{ flex: 1 }}
             />
           </Box>
@@ -298,6 +296,38 @@ const PaymentsManagementnewproduct = () => {
               mt: 2,
             }}
           >
+            <TextField
+              label="Stock"
+              value={stock}
+              onChange={(e) => setStock(e.target.value)}
+              fullWidth
+              margin="normal"
+              type="number"
+              sx={{ flex: 1, marginRight: 1 }}
+            />
+            <FormControl
+              margin="normal"
+              style={{ width: "50%", marginLeft: 1 }}
+            >
+              <InputLabel id="warranty-period-label">
+                Warranty Period
+              </InputLabel>
+              <Select
+                labelId="warranty-period-label"
+                value={warrantyPeriod}
+                onChange={(e) => setWarrantyPeriod(e.target.value)}
+              >
+                <MenuItem value="3 months">3 months</MenuItem>
+                <MenuItem value="6 months">6 months</MenuItem>
+                <MenuItem value="12 months">12 months</MenuItem>
+                <MenuItem value="24 months">24 months</MenuItem>
+                <MenuItem value="36 months">36 months</MenuItem>
+                <MenuItem value="48 months">48 months</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
+
+          <Box sx={{ display: "flex", width: "50%" }}>
             <FormControlLabel
               control={
                 <Switch
@@ -316,24 +346,8 @@ const PaymentsManagementnewproduct = () => {
               }
               label="Featured"
             />
-            <FormControl margin="normal" style={{ width: "50%" }}>
-              <InputLabel id="warranty-period-label">
-                Warranty Period
-              </InputLabel>
-              <Select
-                labelId="warranty-period-label"
-                value={warrantyPeriod}
-                onChange={(e) => setWarrantyPeriod(e.target.value)}
-              >
-                <MenuItem value="3 months">3 months</MenuItem>
-                <MenuItem value="6 months">6 months</MenuItem>
-                <MenuItem value="12 months">12 months</MenuItem>
-                <MenuItem value="24 months">24 months</MenuItem>
-                <MenuItem value="36 months">36 months</MenuItem>
-                <MenuItem value="48 months">48 months</MenuItem>
-              </Select>
-            </FormControl>
           </Box>
+
           <TextField
             label="Description"
             value={description}
@@ -446,3 +460,4 @@ const PaymentsManagementnewproduct = () => {
 };
 
 export default PaymentsManagementnewproduct;
+
