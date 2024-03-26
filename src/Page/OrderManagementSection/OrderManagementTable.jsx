@@ -112,7 +112,7 @@ export default function EnhancedTable() {
     try {
       const token = Cookies.get("token");
       const response = await axios.get(
-        `https://e-commerce-backend-2ltj.onrender.com/api/v1/order/${id}`,
+        `${process.env.REACT_APP_BASE_URL}/order/${id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -136,7 +136,7 @@ export default function EnhancedTable() {
     try {
       const token = Cookies.get("token");
       const response = await axios.get(
-        "https://e-commerce-backend-2ltj.onrender.com/api/v1/orders/all",
+        `${process.env.REACT_APP_BASE_URL}/orders/all`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -241,8 +241,6 @@ export default function EnhancedTable() {
     );
   });
 
- 
-
   const filteredByDateOrders = selectedDate
     ? filteredOrders.filter((order) => {
         const orderDate = new Date(order.createdAt).toDateString();
@@ -260,7 +258,7 @@ export default function EnhancedTable() {
     try {
       const token = Cookies.get("token");
       const response = await axios.put(
-        `https://e-commerce-backend-2ltj.onrender.com/api/v1/order/${id}`,
+        `${process.env.REACT_APP_BASE_URL}/order/${id}`,
         {}, // Ensure you provide the necessary data to update the order if required
         {
           headers: {
@@ -285,7 +283,7 @@ export default function EnhancedTable() {
     try {
       const token = Cookies.get("token");
       const response = await axios.delete(
-        `https://e-commerce-backend-2ltj.onrender.com/api/v1/order/${id}`,
+        `${process.env.REACT_APP_BASE_URL}/order/${id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

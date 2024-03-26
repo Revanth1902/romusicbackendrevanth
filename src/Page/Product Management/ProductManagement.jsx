@@ -22,7 +22,7 @@ export default function ProductManagement() {
       try {
         const token = Cookies.get("token");
         const response = await axios.get(
-          "https://e-commerce-backend-2ltj.onrender.com/api/v1/admin/products",
+          `${process.env.REACT_APP_BASE_URL}/admin/products`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

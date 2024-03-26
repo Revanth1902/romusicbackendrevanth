@@ -8,6 +8,7 @@ import "react-toastify/dist/ReactToastify.css";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { ArrowUpward, ArrowDownward } from "@mui/icons-material"; // Import icons for sorting
+import { Button } from "@mui/material";
 
 const Coupons = () => {
   const [coupons, setCoupons] = useState([]);
@@ -32,7 +33,7 @@ const Coupons = () => {
     try {
       const token = Cookies.get("token");
       const response = await axios.get(
-        "https://e-commerce-backend-2ltj.onrender.com/api/v1/admin/coupons",
+        `${process.env.REACT_APP_BASE_URL}/admin/coupons`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -51,7 +52,7 @@ const Coupons = () => {
     try {
       const token = Cookies.get("token");
       const response = await axios.post(
-        "https://e-commerce-backend-2ltj.onrender.com/api/v1/admin/coupon/new",
+        `${process.env.REACT_APP_BASE_URL}/admin/coupon/new`,
         newCouponData,
         {
           headers: {
@@ -84,7 +85,7 @@ const Coupons = () => {
     try {
       const token = Cookies.get("token");
       const response = await axios.delete(
-        `https://e-commerce-backend-2ltj.onrender.com/api/v1/admin/coupon/${id}`,
+        `${process.env.REACT_APP_BASE_URL}/admin/coupon/${id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -114,7 +115,7 @@ const Coupons = () => {
     try {
       const token = Cookies.get("token");
       const response = await axios.put(
-        `https://e-commerce-backend-2ltj.onrender.com/api/v1/admin/updatecoupon/${editCouponData._id}`,
+        `${process.env.REACT_APP_BASE_URL}/admin/updatecoupon/${editCouponData._id}`,
         editCouponData,
         {
           headers: {
@@ -161,7 +162,13 @@ const Coupons = () => {
     <>
       <SideBar />
       <div className="coupons-container">
-        <SideBar />
+        <Button
+          variant="contained"
+          onClick={() => setShowAddCouponModal(true)}
+          style={{ backgroundColor: "#ffa500", marginRight: "5%" }}
+        >
+          Add Coupon
+        </Button>
         <div className="coupons-list-header">
           <div className="coupon-field" onClick={() => handleSort("code")}>
             Code {getSortIcon("code")}

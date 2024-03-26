@@ -42,7 +42,7 @@ const CategoryComponent = () => {
     try {
       const token = Cookies.get("token");
       const response = await axios.get(
-        "https://e-commerce-backend-2ltj.onrender.com/api/v1/admin/getAllCategories",
+        `${process.env.REACT_APP_BASE_URL}/admin/getAllCategories`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -65,7 +65,7 @@ const CategoryComponent = () => {
     try {
       const token = Cookies.get("token");
       await axios.post(
-        "https://e-commerce-backend-2ltj.onrender.com/api/v1/admin/category/new",
+        `${process.env.REACT_APP_BASE_URL}/admin/category/new`,
         {
           categoryName: newCategoryName,
         },
@@ -88,7 +88,7 @@ const CategoryComponent = () => {
     try {
       const token = Cookies.get("token");
       await axios.delete(
-        `https://e-commerce-backend-2ltj.onrender.com/api/v1/admin/category/${categoryId}`,
+        `${process.env.REACT_APP_BASE_URL}/admin/category/${categoryId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

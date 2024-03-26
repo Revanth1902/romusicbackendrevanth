@@ -30,7 +30,7 @@ export default function InventoryManagement() {
     try {
       const token = Cookies.get("token");
       const response = await axios.get(
-        "https://e-commerce-backend-2ltj.onrender.com/api/v1/admin/getAllBanners",
+        `${process.env.REACT_APP_BASE_URL}/admin/getAllBanners`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -58,7 +58,7 @@ export default function InventoryManagement() {
     try {
       const token = Cookies.get("token");
       const response = await axios.delete(
-        `https://e-commerce-backend-2ltj.onrender.com/api/v1/admin/banner/${deleteBannerId}`,
+        `${process.env.REACT_APP_BASE_URL}/admin/banner/${deleteBannerId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -120,8 +120,6 @@ export default function InventoryManagement() {
               >
                 Add Banner
               </Button>
-
-            
             </Box>
 
             <Box>

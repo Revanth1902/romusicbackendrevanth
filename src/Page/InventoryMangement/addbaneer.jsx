@@ -21,7 +21,7 @@ const BannerComponent = () => {
     try {
       const token = Cookies.get("token");
       const response = await axios.get(
-        "https://e-commerce-backend-2ltj.onrender.com/api/v1/admin/getAllCategories",
+        `${process.env.REACT_APP_BASE_URL}/admin/getAllCategories`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -87,7 +87,7 @@ const BannerComponent = () => {
         formData.append("bannerImages", image.file);
       });
       const response = await axios.post(
-        "https://e-commerce-backend-2ltj.onrender.com/api/v1/admin/banner/new",
+        `${process.env.REACT_APP_BASE_URL}/admin/banner/new`,
         formData,
         {
           headers: {

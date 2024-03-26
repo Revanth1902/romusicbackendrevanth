@@ -40,7 +40,7 @@ const BrandsManagement = () => {
     try {
       const token = Cookies.get("token"); // Fetch user token from cookies
       const response = await axios.get(
-        "https://e-commerce-backend-2ltj.onrender.com/api/v1/admin/getAllBrands",
+        `${process.env.REACT_APP_BASE_URL}/admin/getAllBrands`,
         {
           headers: {
             Authorization: `Bearer ${token}`, // Include token in headers
@@ -67,7 +67,7 @@ const BrandsManagement = () => {
       try {
         const token = Cookies.get("token"); // Fetch user token from cookies
         await axios.post(
-          "https://e-commerce-backend-2ltj.onrender.com/api/v1/admin/brand/new",
+          `${process.env.REACT_APP_BASE_URL}/admin/brand/new`,
           { brandName: newBrand.trim() },
           {
             headers: {
@@ -111,7 +111,7 @@ const BrandsManagement = () => {
     try {
       const token = Cookies.get("token");
       await axios.delete(
-        `https://e-commerce-backend-2ltj.onrender.com/api/v1/admin/brand/${confirmDelete}`,
+        `${process.env.REACT_APP_BASE_URL}/admin/brand/${confirmDelete}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

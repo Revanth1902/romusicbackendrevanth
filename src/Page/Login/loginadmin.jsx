@@ -14,7 +14,7 @@ const Login = () => {
     e.preventDefault();
     try {
       const response = await axios.post(
-        "https://e-commerce-backend-2ltj.onrender.com/api/v1/login",
+        `${process.env.REACT_APP_BASE_URL}/login`,
         {
           email,
           password,

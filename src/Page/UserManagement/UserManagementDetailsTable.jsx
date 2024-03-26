@@ -50,7 +50,7 @@ function EnhancedTable({ rows }) {
     try {
       const token = Cookies.get("token");
       const response = await axios.get(
-        "https://e-commerce-backend-2ltj.onrender.com/api/v1/admin/users",
+        `${process.env.REACT_APP_BASE_URL}/admin/users`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -105,7 +105,7 @@ function EnhancedTable({ rows }) {
     try {
       const token = Cookies.get("token");
       const response = await axios.delete(
-        `https://e-commerce-backend-2ltj.onrender.com/api/v1/admin/user/${confirmDelete}`,
+        `${process.env.REACT_APP_BASE_URL}/admin/user/${confirmDelete}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

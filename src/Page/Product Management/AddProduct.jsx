@@ -60,7 +60,7 @@ const PaymentsManagementnewproduct = () => {
     try {
       const token = Cookies.get("token");
       const response = await axios.get(
-        "https://e-commerce-backend-2ltj.onrender.com/api/v1/admin/getAllBrands",
+        `${process.env.REACT_APP_BASE_URL}/admin/getAllBrands`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -83,7 +83,7 @@ const PaymentsManagementnewproduct = () => {
     try {
       const token = Cookies.get("token");
       const response = await axios.get(
-        "https://e-commerce-backend-2ltj.onrender.com/api/v1/admin/getAllCategories",
+        `${process.env.REACT_APP_BASE_URL}/admin/getAllCategories`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -152,7 +152,7 @@ const PaymentsManagementnewproduct = () => {
         formData.append(`productImages`, imag);
       }
       const response = await axios.post(
-        "https://e-commerce-backend-2ltj.onrender.com/api/v1/admin/product/new",
+        `${process.env.REACT_APP_BASE_URL}/admin/product/new`,
         formData,
         {
           headers: {

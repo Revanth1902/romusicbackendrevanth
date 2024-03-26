@@ -1,29 +1,30 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
-import "./Staffmanagement.css";
 import Cookies from "js-cookie";
 import "react-toastify/dist/ReactToastify.css";
-import TableSortLabel from "@mui/material/TableSortLabel";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
-import Paper from "@mui/material/Paper";
-import IconButton from "@mui/material/IconButton";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
-import CircularProgress from "@mui/material/CircularProgress";
 import {
+  Button,
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
-  Button,
+  IconButton,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
   TextField,
+  Typography,
+  Box,
 } from "@mui/material";
+import TableSortLabel from "@mui/material/TableSortLabel";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 import SideBar from "../../Component/SideBar";
 
 const StaffManagement = () => {
@@ -36,13 +37,29 @@ const StaffManagement = () => {
   const [selectedStaff, setSelectedStaff] = useState(null);
   const [orderBy, setOrderBy] = useState(null);
   const [order, setOrder] = useState("asc");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [addStaffData, setAddStaffData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    mobileNo: "",
+  });
 
+  const [editStaffData, setEditStaffData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    mobileNo: "",
+  });
   const [newStaffData, setNewStaffData] = useState({
     firstName: "",
     lastName: "",
     email: "",
     mobileNo: "",
   });
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+  };
 
   useEffect(() => {
     fetchStaff();
@@ -50,17 +67,11 @@ const StaffManagement = () => {
 
   const fetchStaff = async () => {
     try {
-      const token = Cookies.get("token"); // Get the token from cookies
       const response = await axios.get(
-        "https://e-commerce-backend-2ltj.onrender.com/api/v1/admin/staff",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`, // Set the Authorization header
-          },
-        }
+        `https://newecommerce-backend-3fpf.onrender.com/api/v1/admin/staff/get`
       );
       if (response.data.success) {
-        setStaffList(response.data.staff);
+        setStaffList(response.data.data);
       } else {
         setStaffList([]);
         toast.error("Failed to fetch staff");
@@ -75,18 +86,18 @@ const StaffManagement = () => {
 
   const handleDelete = async () => {
     try {
-      const token = Cookies.get("token"); // Get the token from cookies
+      const token = Cookies.get("token"); // Retrieve token from cookies
       const response = await axios.delete(
-        `https://e-commerce-backend-2ltj.onrender.com/api/v1/admin/deletestaff/${staffToDelete._id}`,
+        `https://newecommerce-backend-3fpf.onrender.com/api/v1/admin/staff/delete/${staffToDelete._id}`,
         {
           headers: {
-            Authorization: `Bearer ${token}`, // Set the Authorization header
+            Authorization: `Bearer ${token}`, // Add authorization header
           },
         }
       );
       if (response.data.success) {
         toast.success("Staff deleted successfully");
-        fetchStaff(); // Refresh the staff list
+        fetchStaff();
       } else {
         toast.error("Failed to delete staff");
       }
@@ -101,20 +112,20 @@ const StaffManagement = () => {
 
   const handleAddStaff = async () => {
     try {
-      const token = Cookies.get("token"); // Get the token from cookies
+      const token = Cookies.get("token"); // Retrieve token from cookies
       const response = await axios.post(
-        "https://e-commerce-backend-2ltj.onrender.com/api/v1/admin/newstaff",
-        newStaffData,
+        `https://newecommerce-backend-3fpf.onrender.com/api/v1/admin/staff/new`,
+        addStaffData,
         {
           headers: {
-            Authorization: `Bearer ${token}`, // Set the Authorization header
+            Authorization: `Bearer ${token}`, // Add authorization header
           },
         }
       );
       if (response.data.success) {
         toast.success("Staff added successfully");
         setOpenAddStaffDialog(false);
-        fetchStaff(); // Refresh the staff list
+        fetchStaff();
       } else {
         toast.error("Failed to add staff");
       }
@@ -124,9 +135,37 @@ const StaffManagement = () => {
     }
   };
 
+  const handleEditSave = async () => {
+    try {
+      const token = Cookies.get("token"); // Retrieve token from cookies
+      const response = await axios.put(
+        `https://newecommerce-backend-3fpf.onrender.com/api/v1/admin/staff/updateDetails/${selectedStaff._id}`,
+        editStaffData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, // Add authorization header
+          },
+        }
+      );
+      if (response.data.success) {
+        toast.success("Staff updated successfully");
+        setOpenEditDialog(false);
+        fetchStaff();
+      } else {
+        toast.error("Failed to update staff");
+      }
+    } catch (error) {
+      console.error("Error updating staff:", error);
+      toast.error("Failed to update staff");
+    }
+  };
+  const handleInputChange = (e) => {
+    setNewStaffData({ ...newStaffData, [e.target.name]: e.target.value });
+  };
+
   const handleEdit = (staff) => {
     setSelectedStaff(staff);
-    setNewStaffData({
+    setEditStaffData({
       firstName: staff.firstName,
       lastName: staff.lastName,
       email: staff.email,
@@ -146,51 +185,67 @@ const StaffManagement = () => {
     setOrderBy(property);
   };
 
-  const handleInputChange = (e) => {
-    setNewStaffData({ ...newStaffData, [e.target.name]: e.target.value });
-  };
-
-  const handleEditSave = async () => {
-    try {
-      const token = Cookies.get("token"); // Get the token from cookies
-      const response = await axios.put(
-        `https://e-commerce-backend-2ltj.onrender.com/api/v1/admin/editstaff/${selectedStaff._id}`,
-        newStaffData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`, // Set the Authorization header
-          },
-        }
+  const sortedStaff = [...staffList].sort((a, b) => {
+    const orderByValueA = a[orderBy] || "";
+    const orderByValueB = b[orderBy] || "";
+    if (orderBy === "mobileNo") {
+      return (
+        (order === "asc" ? 1 : -1) *
+        (parseInt(orderByValueA) - parseInt(orderByValueB))
       );
-      if (response.data.success) {
-        toast.success("Staff updated successfully");
-        setOpenEditDialog(false);
-        fetchStaff(); // Refresh the staff list
-      } else {
-        toast.error("Failed to update staff");
-      }
-    } catch (error) {
-      console.error("Error updating staff:", error);
-      toast.error("Failed to update staff");
+    } else {
+      return (
+        (order === "asc" ? 1 : -1) * orderByValueA.localeCompare(orderByValueB)
+      );
     }
+  });
+
+  const filteredStaff = sortedStaff.filter((staff) => {
+    const searchTermLower = searchTerm.toLowerCase();
+    return (
+      staff.firstName.toLowerCase().includes(searchTermLower) ||
+      staff.lastName.toLowerCase().includes(searchTermLower) ||
+      staff.email.toLowerCase().includes(searchTermLower) ||
+      String(staff.mobileNo).toLowerCase().includes(searchTermLower)
+    );
+  });
+  const handleAddInputChange = (e) => {
+    setAddStaffData({ ...addStaffData, [e.target.name]: e.target.value });
   };
 
-  const sortedStaff = staffList.sort((a, b) => {
-    // Implement sorting logic here
-  });
+  const handleEditInputChange = (e) => {
+    setEditStaffData({ ...editStaffData, [e.target.name]: e.target.value });
+  };
+  const capitalizeFirstLetter = (str) => {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  };
 
   return (
     <>
       <SideBar />
       <div className="staff-management">
-        <h2>Staff List</h2>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => setOpenAddStaffDialog(true)}
+        <Box
+          display="flex"
+          alignItems="center"
+          marginTop="7%"
+          justifyContent="space-between"
+          marginLeft="20%"
         >
-          Add Staff
-        </Button>
+          <TextField
+            label="Search"
+            variant="outlined"
+            value={searchTerm}
+            onChange={handleSearch}
+            sx={{ mr: 1 }} // Add margin-right to create space between the elements
+          />
+          <Button
+            variant="contained"
+            onClick={() => setOpenAddStaffDialog(true)}
+            style={{ backgroundColor: "#ffa500", marginRight: "5%" }}
+          >
+            Add Staff
+          </Button>
+        </Box>
         {loading ? (
           <div
             style={{
@@ -203,9 +258,16 @@ const StaffManagement = () => {
             <CircularProgress />
           </div>
         ) : staffList.length === 0 ? (
-          <p>No staff at the moment</p>
+          <Typography variant="body1">No staff at the moment</Typography>
         ) : (
-          <TableContainer component={Paper}>
+          <TableContainer
+            component={Paper}
+            style={{
+              width: "80%",
+              marginLeft: "19%",
+              marginTop: "5%",
+            }}
+          >
             <Table>
               <TableHead>
                 <TableRow>
@@ -249,10 +311,15 @@ const StaffManagement = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {sortedStaff.map((staff) => (
+                {filteredStaff.map((staff) => (
                   <TableRow key={staff._id}>
-                    <TableCell>{staff.firstName}</TableCell>
-                    <TableCell>{staff.lastName}</TableCell>
+                    <TableCell>
+                      {capitalizeFirstLetter(staff.firstName)}
+                    </TableCell>
+                    <TableCell>
+                      {capitalizeFirstLetter(staff.lastName)}
+                    </TableCell>
+
                     <TableCell>{staff.email}</TableCell>
                     <TableCell>{staff.mobileNo}</TableCell>
                     <TableCell>
@@ -281,7 +348,7 @@ const StaffManagement = () => {
         >
           <DialogTitle>Delete Staff</DialogTitle>
           <DialogContent>
-            <p>Are you sure you want to delete this staff?</p>
+            <Typography>Are you sure you want to delete this staff?</Typography>
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setOpenDeleteDialog(false)}>Cancel</Button>
@@ -299,32 +366,32 @@ const StaffManagement = () => {
             <TextField
               name="firstName"
               label="First Name"
-              value={newStaffData.firstName}
-              onChange={handleInputChange}
+              value={addStaffData.firstName}
+              onChange={handleAddInputChange}
               fullWidth
               margin="normal"
             />
             <TextField
               name="lastName"
               label="Last Name"
-              value={newStaffData.lastName}
-              onChange={handleInputChange}
+              value={addStaffData.lastName}
+              onChange={handleAddInputChange}
               fullWidth
               margin="normal"
             />
             <TextField
               name="email"
               label="Email"
-              value={newStaffData.email}
-              onChange={handleInputChange}
+              value={addStaffData.email}
+              onChange={handleAddInputChange}
               fullWidth
               margin="normal"
             />
             <TextField
               name="mobileNo"
               label="Mobile No"
-              value={newStaffData.mobileNo}
-              onChange={handleInputChange}
+              value={addStaffData.mobileNo}
+              onChange={handleAddInputChange}
               fullWidth
               margin="normal"
             />
@@ -336,41 +403,46 @@ const StaffManagement = () => {
             </Button>
           </DialogActions>
         </Dialog>
+
         <Dialog open={openEditDialog} onClose={() => setOpenEditDialog(false)}>
           <DialogTitle>Edit Staff</DialogTitle>
           <DialogContent>
-            <TextField
-              name="firstName"
-              label="First Name"
-              value={newStaffData.firstName}
-              onChange={handleInputChange}
-              fullWidth
-              margin="normal"
-            />
-            <TextField
-              name="lastName"
-              label="Last Name"
-              value={newStaffData.lastName}
-              onChange={handleInputChange}
-              fullWidth
-              margin="normal"
-            />
-            <TextField
-              name="email"
-              label="Email"
-              value={newStaffData.email}
-              onChange={handleInputChange}
-              fullWidth
-              margin="normal"
-            />
-            <TextField
-              name="mobileNo"
-              label="Mobile No"
-              value={newStaffData.mobileNo}
-              onChange={handleInputChange}
-              fullWidth
-              margin="normal"
-            />
+            {selectedStaff && (
+              <>
+                <TextField
+                  name="firstName"
+                  label="First Name"
+                  value={editStaffData.firstName}
+                  onChange={handleEditInputChange}
+                  fullWidth
+                  margin="normal"
+                />
+                <TextField
+                  name="lastName"
+                  label="Last Name"
+                  value={editStaffData.lastName}
+                  onChange={handleEditInputChange}
+                  fullWidth
+                  margin="normal"
+                />
+                <TextField
+                  name="email"
+                  label="Email"
+                  value={editStaffData.email}
+                  onChange={handleEditInputChange}
+                  fullWidth
+                  margin="normal"
+                />
+                <TextField
+                  name="mobileNo"
+                  label="Mobile No"
+                  value={editStaffData.mobileNo}
+                  onChange={handleEditInputChange}
+                  fullWidth
+                  margin="normal"
+                />
+              </>
+            )}
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setOpenEditDialog(false)}>Cancel</Button>
