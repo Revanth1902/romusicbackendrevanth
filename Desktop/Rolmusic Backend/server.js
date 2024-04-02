@@ -21,7 +21,9 @@ app.use("/recentlyPlayed", recentlyPlayedRoutes);
 mongoose
   .connect(
     "mongodb+srv://revanth19a:revanth@cluster0.4jsmfp8.mongodb.net/rolmusic",
-    { useNewUrlParser: true, useUnifiedTopology: true }
+    {
+      // Remove useNewUrlParser and useUnifiedTopology options
+    }
   )
   .then(() => {
     console.log("Connected to MongoDB");
