@@ -316,6 +316,7 @@ const PaymentsManagementnewproduct = () => {
                 value={warrantyPeriod}
                 onChange={(e) => setWarrantyPeriod(e.target.value)}
               >
+                <MenuItem value="no warranty"> No Warranty</MenuItem>
                 <MenuItem value="3 months">3 months</MenuItem>
                 <MenuItem value="6 months">6 months</MenuItem>
                 <MenuItem value="12 months">12 months</MenuItem>

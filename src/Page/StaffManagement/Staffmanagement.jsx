@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
-import Cookies from "js-cookie";
 import "react-toastify/dist/ReactToastify.css";
+import { saveAs } from "file-saver";
+import * as XLSX from "xlsx";
+import Cookies from "js-cookie";
 import {
   Button,
   CircularProgress,
@@ -38,6 +40,7 @@ const StaffManagement = () => {
   const [orderBy, setOrderBy] = useState(null);
   const [order, setOrder] = useState("asc");
   const [searchTerm, setSearchTerm] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const [addStaffData, setAddStaffData] = useState({
     firstName: "",
     lastName: "",
@@ -57,6 +60,7 @@ const StaffManagement = () => {
     email: "",
     mobileNo: "",
   });
+
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
   };
@@ -68,7 +72,7 @@ const StaffManagement = () => {
   const fetchStaff = async () => {
     try {
       const response = await axios.get(
-        `https://newecommerce-backend-3fpf.onrender.com/api/v1/admin/staff/get`
+        `${process.env.REACT_APP_BASE_URL}/admin/staff/get`
       );
       if (response.data.success) {
         setStaffList(response.data.data);
@@ -88,7 +92,7 @@ const StaffManagement = () => {
     try {
       const token = Cookies.get("token"); // Retrieve token from cookies
       const response = await axios.delete(
-        `https://newecommerce-backend-3fpf.onrender.com/api/v1/admin/staff/delete/${staffToDelete._id}`,
+        `${process.env.REACT_APP_BASE_URL}/admin/staff/delete/${staffToDelete._id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`, // Add authorization header
@@ -109,12 +113,40 @@ const StaffManagement = () => {
       setOpenDeleteDialog(false);
     }
   };
-
   const handleAddStaff = async () => {
     try {
+      if (submitting) return; // Prevent multiple clicks
+
+      // Validation
+      if (
+        !addStaffData.firstName ||
+        !addStaffData.lastName ||
+        !addStaffData.email ||
+        !addStaffData.mobileNo
+      ) {
+        toast.error("Please fill in all fields");
+        return;
+      }
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(addStaffData.email)) {
+        toast.error("Invalid email format");
+        return;
+      }
+
+      // Validate mobile number format
+      const mobileRegex = /^\d{10}$/;
+      if (!mobileRegex.test(addStaffData.mobileNo)) {
+        toast.error("Invalid mobile number format");
+        return;
+      }
+
+      setSubmitting(true); // Start submission
+
       const token = Cookies.get("token"); // Retrieve token from cookies
       const response = await axios.post(
-        `https://newecommerce-backend-3fpf.onrender.com/api/v1/admin/staff/new`,
+        `${process.env.REACT_APP_BASE_URL}/admin/staff/new`,
         addStaffData,
         {
           headers: {
@@ -132,18 +164,32 @@ const StaffManagement = () => {
     } catch (error) {
       console.error("Error adding staff:", error);
       toast.error("Failed to add staff");
+    } finally {
+      setSubmitting(false); // End submission
     }
   };
 
   const handleEditSave = async () => {
     try {
-      const token = Cookies.get("token"); // Retrieve token from cookies
+      // Validation
+      if (!validateEmail(editStaffData.email)) {
+        toast.error("Invalid email format");
+        return;
+      }
+      if (!validateMobile(editStaffData.mobileNo)) {
+        toast.error("Invalid mobile number format");
+        return;
+      }
+
+      setSubmitting(true);
+
+      const token = Cookies.get("token");
       const response = await axios.put(
-        `https://newecommerce-backend-3fpf.onrender.com/api/v1/admin/staff/updateDetails/${selectedStaff._id}`,
+        `${process.env.REACT_APP_BASE_URL}/admin/staff/updateDetails/${selectedStaff._id}`,
         editStaffData,
         {
           headers: {
-            Authorization: `Bearer ${token}`, // Add authorization header
+            Authorization: `Bearer ${token}`,
           },
         }
       );
@@ -157,8 +203,21 @@ const StaffManagement = () => {
     } catch (error) {
       console.error("Error updating staff:", error);
       toast.error("Failed to update staff");
+    } finally {
+      setSubmitting(false);
     }
   };
+
+  const validateEmail = (email) => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
+  };
+
+  const validateMobile = (mobileNo) => {
+    const regex = /^\d{10}$/;
+    return regex.test(mobileNo);
+  };
+
   const handleInputChange = (e) => {
     setNewStaffData({ ...newStaffData, [e.target.name]: e.target.value });
   };
@@ -209,13 +268,45 @@ const StaffManagement = () => {
       String(staff.mobileNo).toLowerCase().includes(searchTermLower)
     );
   });
-  const handleAddInputChange = (e) => {
-    setAddStaffData({ ...addStaffData, [e.target.name]: e.target.value });
+
+  const handleExportExcel = async () => {
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_BASE_URL}/admin/staff/get`
+      );
+
+      if (response.data.success) {
+        const staffData = response.data.data.map(
+          ({ firstName, lastName, email, mobileNo, referralCount }) => ({
+            "First Name": firstName,
+            "Last Name": lastName,
+            Email: email,
+            "Mobile No": mobileNo,
+            "Referral Count": referralCount,
+          })
+        );
+
+        const workbook = XLSX.utils.book_new();
+        const worksheet = XLSX.utils.json_to_sheet(staffData);
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Staff Data");
+
+        const excelBuffer = XLSX.write(workbook, {
+          bookType: "xlsx",
+          type: "array",
+        });
+        const blob = new Blob([excelBuffer], {
+          type: "application/octet-stream",
+        });
+        saveAs(blob, "staff_data.xlsx");
+      } else {
+        toast.error("Failed to export staff data");
+      }
+    } catch (error) {
+      console.error("Error exporting staff data:", error);
+      toast.error("Failed to export staff data");
+    }
   };
 
-  const handleEditInputChange = (e) => {
-    setEditStaffData({ ...editStaffData, [e.target.name]: e.target.value });
-  };
   const capitalizeFirstLetter = (str) => {
     return str.charAt(0).toUpperCase() + str.slice(1);
   };
@@ -238,13 +329,28 @@ const StaffManagement = () => {
             onChange={handleSearch}
             sx={{ mr: 1 }} // Add margin-right to create space between the elements
           />
-          <Button
-            variant="contained"
-            onClick={() => setOpenAddStaffDialog(true)}
-            style={{ backgroundColor: "#ffa500", marginRight: "5%" }}
+          <Box
+            display="flex"
+            alignItems="center"
+            width="100%"
+            justifyContent="flex-end"
           >
-            Add Staff
-          </Button>
+            <Button
+              variant="contained"
+              onClick={() => setOpenAddStaffDialog(true)}
+              style={{ backgroundColor: "#ffa500", marginRight: "5%" }}
+            >
+              Add Staff
+            </Button>
+
+            <Button
+              variant="contained"
+              onClick={handleExportExcel}
+              style={{ backgroundColor: "#ffa500", marginRight: "5%" }}
+            >
+              Export
+            </Button>
+          </Box>
         </Box>
         {loading ? (
           <div
@@ -265,7 +371,8 @@ const StaffManagement = () => {
             style={{
               width: "80%",
               marginLeft: "19%",
-              marginTop: "5%",
+              marginTop: "2%",
+              marginBottom: "2%",
             }}
           >
             <Table>
@@ -367,7 +474,9 @@ const StaffManagement = () => {
               name="firstName"
               label="First Name"
               value={addStaffData.firstName}
-              onChange={handleAddInputChange}
+              onChange={(e) =>
+                setAddStaffData({ ...addStaffData, firstName: e.target.value })
+              }
               fullWidth
               margin="normal"
             />
@@ -375,7 +484,9 @@ const StaffManagement = () => {
               name="lastName"
               label="Last Name"
               value={addStaffData.lastName}
-              onChange={handleAddInputChange}
+              onChange={(e) =>
+                setAddStaffData({ ...addStaffData, lastName: e.target.value })
+              }
               fullWidth
               margin="normal"
             />
@@ -383,7 +494,9 @@ const StaffManagement = () => {
               name="email"
               label="Email"
               value={addStaffData.email}
-              onChange={handleAddInputChange}
+              onChange={(e) =>
+                setAddStaffData({ ...addStaffData, email: e.target.value })
+              }
               fullWidth
               margin="normal"
             />
@@ -391,15 +504,21 @@ const StaffManagement = () => {
               name="mobileNo"
               label="Mobile No"
               value={addStaffData.mobileNo}
-              onChange={handleAddInputChange}
+              onChange={(e) =>
+                setAddStaffData({ ...addStaffData, mobileNo: e.target.value })
+              }
               fullWidth
               margin="normal"
             />
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setOpenAddStaffDialog(false)}>Cancel</Button>
-            <Button onClick={handleAddStaff} color="primary">
-              Add
+            <Button
+              onClick={handleAddStaff}
+              color="primary"
+              disabled={submitting} // Disable the button while submitting
+            >
+              {submitting ? <CircularProgress size={24} /> : "Add"}
             </Button>
           </DialogActions>
         </Dialog>
@@ -413,7 +532,12 @@ const StaffManagement = () => {
                   name="firstName"
                   label="First Name"
                   value={editStaffData.firstName}
-                  onChange={handleEditInputChange}
+                  onChange={(e) =>
+                    setEditStaffData({
+                      ...editStaffData,
+                      firstName: e.target.value,
+                    })
+                  }
                   fullWidth
                   margin="normal"
                 />
@@ -421,7 +545,12 @@ const StaffManagement = () => {
                   name="lastName"
                   label="Last Name"
                   value={editStaffData.lastName}
-                  onChange={handleEditInputChange}
+                  onChange={(e) =>
+                    setEditStaffData({
+                      ...editStaffData,
+                      lastName: e.target.value,
+                    })
+                  }
                   fullWidth
                   margin="normal"
                 />
@@ -429,25 +558,39 @@ const StaffManagement = () => {
                   name="email"
                   label="Email"
                   value={editStaffData.email}
-                  onChange={handleEditInputChange}
+                  onChange={(e) =>
+                    setEditStaffData({
+                      ...editStaffData,
+                      email: e.target.value,
+                    })
+                  }
                   fullWidth
                   margin="normal"
+                  error={!validateEmail(editStaffData.email)}
+                  helperText={!validateEmail(editStaffData.email) && "Invalid email format"}
                 />
                 <TextField
                   name="mobileNo"
                   label="Mobile No"
                   value={editStaffData.mobileNo}
-                  onChange={handleEditInputChange}
+                  onChange={(e) =>
+                    setEditStaffData({
+                      ...editStaffData,
+                      mobileNo: e.target.value,
+                    })
+                  }
                   fullWidth
                   margin="normal"
+                  error={!validateMobile(editStaffData.mobileNo)}
+                  helperText={!validateMobile(editStaffData.mobileNo) && "Invalid mobile number format"}
                 />
               </>
             )}
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setOpenEditDialog(false)}>Cancel</Button>
-            <Button onClick={handleEditSave} color="primary">
-              Save
+            <Button onClick={handleEditSave} color="primary" disabled={submitting}>
+              {submitting ? <CircularProgress size={24} /> : "Save"}
             </Button>
           </DialogActions>
         </Dialog>

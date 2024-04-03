@@ -12,6 +12,7 @@ const BannerComponent = () => {
   const [categoryOptions, setCategoryOptions] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [previewImages, setPreviewImages] = useState([]);
+  const [submitting, setSubmitting] = useState(false); // State to track form submission
 
   useEffect(() => {
     fetchCategoryOptions();
@@ -75,10 +76,11 @@ const BannerComponent = () => {
 
   const handleSubmit = async () => {
     try {
-      if (!selectedCategory || previewImages.length === 0) {
-        toast.error("Please select a category and upload at least one image.");
-        return;
+      if (!selectedCategory || previewImages.length === 0 || submitting) {
+        return; // Do nothing if submitting or missing required data
       }
+
+      setSubmitting(true); // Set submitting to true
 
       const token = Cookies.get("token");
       const formData = new FormData();
@@ -87,7 +89,7 @@ const BannerComponent = () => {
         formData.append("bannerImages", image.file);
       });
       const response = await axios.post(
-        `${process.env.REACT_APP_BASE_URL}/admin/banner/new`,
+        `https://e-commerce-backend-2ltj.onrender.com/api/v1/admin/banner/new`,
         formData,
         {
           headers: {
@@ -108,6 +110,8 @@ const BannerComponent = () => {
     } catch (error) {
       console.error("Error creating banner:", error);
       toast.error("Failed to create banner");
+    } finally {
+      setSubmitting(false); // Reset submitting state regardless of success or failure
     }
   };
 
@@ -157,7 +161,11 @@ const BannerComponent = () => {
           </div>
         )}
 
-        <button onClick={handleSubmit}>Submit</button>
+        {submitting ? (
+          <div className="loader">Submitting...</div> // Show loader while submitting
+        ) : (
+          <button onClick={handleSubmit}>Submit</button> // Show submit button if not submitting
+        )}
       </div>
       <ToastContainer />
     </div>

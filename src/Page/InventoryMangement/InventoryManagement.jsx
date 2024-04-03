@@ -30,7 +30,7 @@ export default function InventoryManagement() {
     try {
       const token = Cookies.get("token");
       const response = await axios.get(
-        `${process.env.REACT_APP_BASE_URL}/admin/getAllBanners`,
+        `https://e-commerce-backend-2ltj.onrender.com/api/v1/admin/getAllBanners`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

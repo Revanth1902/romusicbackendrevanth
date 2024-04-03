@@ -23,7 +23,8 @@ import PaymentIcon from "@mui/icons-material/Payment";
 import ClearIcon from "@mui/icons-material/Clear";
 import { useNavigate } from "react-router-dom";
 import { useCookies } from "react-cookie";
-
+import { saveAs } from "file-saver"; // Import saveAs from file-saver
+import * as XLSX from "xlsx";
 import {
   Dialog,
   DialogActions,
@@ -31,12 +32,12 @@ import {
   DialogContentText,
   DialogTitle,
 } from "@mui/material";
+import { ToastContainer } from "react-toastify";
 
 export default function OrderManagement() {
   const navigate = useNavigate();
   const [cookies, setCookie] = useCookies(["token"]);
-
-
+  const [orders, setOrders] = useState([]);
   const [time, setTime] = React.useState("");
   const [open, openchange] = React.useState(false);
   useEffect(() => {
@@ -71,6 +72,84 @@ export default function OrderManagement() {
     }
   }, [cookies, navigate]);
 
+  const fetchData = async () => {
+    const token = cookies.token;
+    if (!token) {
+      navigate("/loginadmin");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_BASE_URL}/orders/all`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch data");
+      }
+
+      const data = await response.json();
+      if (data.success && data.orders) {
+        setOrders(data.orders);
+      }
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
+
+  const handleDownloadExcel = () => {
+    const workbook = XLSX.utils.book_new();
+
+    const ordersData = orders.map((order, index) => {
+      const orderData = {
+        User: order.user || "undefined",
+        Subtotal: order.subtotal,
+        "Shipping Charges": order.shippingCharges,
+        Discount: order.discount,
+        Total: order.total,
+        Status: order.status,
+        "Shipping Address": `${order.shippingInfo.address}, ${order.shippingInfo.city}, ${order.shippingInfo.state}, ${order.shippingInfo.country}, ${order.shippingInfo.pinCode}`,
+      };
+
+      // Adding order items
+      order.orderItems.forEach((item, itemIndex) => {
+        orderData[`Order Item ${itemIndex + 1} - Item Name`] = item.name;
+        orderData[`Order Item ${itemIndex + 1} - Item Price`] = item.price;
+        orderData[`Order Item ${itemIndex + 1} - Item Quantity`] =
+          item.quantity;
+        orderData[`Order Item ${itemIndex + 1} - Item Warranty Period`] =
+          item.warrantyPeriod;
+        orderData[`Order Item ${itemIndex + 1} - Item Product ID`] =
+          item.productId;
+      });
+
+      return orderData;
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(ordersData, {
+      header: Object.keys(ordersData[0]), // Use the header from the first order
+    });
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Orders");
+
+    const excelBuffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "array",
+    });
+    const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
+    saveAs(blob, "orders.xlsx");
+  };
+
+  const countOrdersByStatus = (status) => {
+    return orders.filter((order) => order.status === status).length;
+  };
+  useEffect(() => {
+    fetchData();
+  }, []);
   return (
     <Box sx={{ display: "flex" }}>
       <SideBar />
@@ -84,283 +163,11 @@ export default function OrderManagement() {
             }}
           >
             <Button
-              onClick={functionopenpopup}
+              onClick={handleDownloadExcel}
               sx={{ background: "orange" }}
               variant="contained"
             >
               Order Summary
-            </Button>
-            <Dialog open={open} onClose={closepopup} fullWidth maxWidth="lg">
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <DialogTitle>Order Details</DialogTitle>
-                <DialogTitle>
-                  <ClearIcon
-                    sx={{
-                      color: "black",
-                      background: "#ffeb99",
-                      p: 1,
-                      fontSize: "40px",
-                      borderRadius: "10px",
-                    }}
-                  />
-                </DialogTitle>
-              </Box>
-
-              <DialogContent>
-                <div>
-                  <Breadcrumbs aria-label="breadcrumb">
-                    <Link
-                      underline="hover"
-                      color="inherit"
-                      style={{ fontSize: "14px" }}
-                    >
-                      <span style={{ color: "black" }}>Order Number</span>{" "}
-                      #9348fir72
-                    </Link>
-                    <Link
-                      underline="hover"
-                      color="inherit"
-                      style={{ fontSize: "14px" }}
-                    >
-                      <span style={{ color: "black" }}>Order Date</span> 12 Nov
-                      2023 - 12:25 pm
-                    </Link>
-
-                    <Link
-                      underline="hover"
-                      color="inherit"
-                      style={{ fontSize: "14px" }}
-                    >
-                      <span style={{ color: "black" }}>Tracking ID </span>
-                      IN63545115055CG
-                    </Link>
-                    <FileCopyIcon sx={{ color: "blue" }} />
-                  </Breadcrumbs>
-                </div>
-                <DialogContentText>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      marginTop: "15px",
-                      marginBottom: "20px",
-                    }}
-                  >
-                    <div
-                      className="OrderManagementModel"
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          marginBottom: "30px",
-                        }}
-                      >
-                        <PersonIcon
-                          sx={{
-                            color: "black",
-                            background: "#ffeb99",
-                            p: 1,
-                            fontSize: "40px",
-                            borderRadius: "10px",
-                          }}
-                        />
-                        <Typography
-                          variant="h6"
-                          sx={{
-                            fontSize: "14px",
-                            fontWeight: "400",
-                            mb: -2,
-                          }}
-                        >
-                          Swapnil Joshi
-                          <br />
-                          <Typography paragraph style={{ fontSize: "12px" }}>
-                            Customer since 12 Sept 2022
-                          </Typography>
-                        </Typography>
-                        <Button
-                          className="pendingButton"
-                          variant="contained"
-                          sx={{
-                            color: "grey",
-                            background: "#ffeb99",
-                            padding: "0 8px",
-                            textTransform: "lowercase",
-                          }}
-                        >
-                          Pending
-                        </Button>
-                      </Box>
-                      <Box
-                        sx={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                        }}
-                      >
-                        <Typography variant="h6" sx={{ fontSize: "15px" }}>
-                          Phone
-                          <br />
-                          <Typography
-                            paragraph
-                            style={{ fontWeight: "600", color: "black" }}
-                          >
-                            +31-9874563210
-                          </Typography>
-                        </Typography>
-
-                        <Typography variant="h6" sx={{ fontSize: "15px" }}>
-                          Email
-                          <br />
-                          <Typography
-                            paragraph
-                            style={{ fontWeight: "600", color: "black" }}
-                          >
-                            swapnil.joshi.gmail.com
-                          </Typography>
-                        </Typography>
-                      </Box>
-                    </div>
-
-                    <div
-                      className="OrderManagementModel"
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          marginBottom: "30px",
-                        }}
-                      >
-                        <PlaceIcon
-                          sx={{
-                            color: "black",
-                            background: "#ffeb99",
-                            p: 1,
-                            fontSize: "40px",
-                            borderRadius: "10px",
-                          }}
-                        />
-                      </Box>
-                      <Box
-                        sx={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                        }}
-                      >
-                        <Typography variant="h6" sx={{ fontSize: "15px" }}>
-                          Home Address
-                          <br />
-                          <Typography
-                            paragraph
-                            style={{ fontWeight: "600", color: "black" }}
-                          >
-                            108, Village - Potlod, Tehsil - Sanwer, Dist -
-                            Indore, Madhya Pradesh
-                          </Typography>
-                        </Typography>
-                      </Box>
-                    </div>
-
-                    <div
-                      className="OrderManagementModel"
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          marginBottom: "30px",
-                        }}
-                      >
-                        <PaymentIcon
-                          sx={{
-                            color: "black",
-                            background: "#ffeb99",
-                            p: 1,
-                            fontSize: "40px",
-                            borderRadius: "10px",
-                          }}
-                        />
-                      </Box>
-                      <Box
-                        sx={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                        }}
-                      >
-                        <Typography variant="h6" sx={{ fontSize: "15px" }}>
-                          Payment Method
-                          <br />
-                          <Typography
-                            paragraph
-                            style={{ fontWeight: "600", color: "black" }}
-                          >
-                            Master Card
-                          </Typography>
-                        </Typography>
-
-                        <Typography variant="h6" sx={{ fontSize: "15px" }}>
-                          Order Type
-                          <br />
-                          <Typography
-                            paragraph
-                            style={{ fontWeight: "600", color: "black" }}
-                          >
-                            Home Delivery
-                          </Typography>
-                        </Typography>
-                      </Box>
-                    </div>
-                  </Box>
-                  <Box>
-                    <ModalTable />
-                  </Box>
-                </DialogContentText>
-              </DialogContent>
-              <DialogActions>
-                <Button
-                  onClick={closepopup}
-                  sx={{ background: "orange" }}
-                  variant="contained"
-                >
-                  Mark is Complete | <KeyboardArrowDownIcon />
-                </Button>
-                <Button onClick={closepopup} color="error" variant="contained">
-                  Close Order
-                </Button>
-              </DialogActions>
-            </Dialog>
-
-            <Button sx={{ background: "orange" }} variant="contained">
-              <AddIcon />
-              Create a New Order
             </Button>
           </Box>
         </Box>
@@ -422,7 +229,7 @@ export default function OrderManagement() {
                 All Orders
                 <br />
                 <Typography paragraph style={{ fontWeight: "800" }}>
-                  960
+                  {orders.length}
                 </Typography>
               </Typography>
 
@@ -430,7 +237,7 @@ export default function OrderManagement() {
                 Pending
                 <br />
                 <Typography paragraph style={{ fontWeight: "800" }}>
-                  103
+                  {countOrdersByStatus("Pending")}
                 </Typography>
               </Typography>
 
@@ -438,7 +245,7 @@ export default function OrderManagement() {
                 Completed
                 <br />
                 <Typography paragraph style={{ fontWeight: "800" }}>
-                  437
+                  {countOrdersByStatus("Delivered")}
                 </Typography>
               </Typography>
             </Box>
@@ -605,6 +412,7 @@ export default function OrderManagement() {
 
         <OderManagementTable />
       </Box>
+      <ToastContainer/>
     </Box>
   );
 }

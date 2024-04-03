@@ -32,7 +32,6 @@ import ViewInArIcon from "@mui/icons-material/ViewInAr";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import ListAltIcon from "@mui/icons-material/ListAlt";
 import CardMembershipIcon from "@mui/icons-material/CardMembership";
-
 import { useNavigate, useLocation } from "react-router-dom";
 const drawerWidth = 240;
 
@@ -240,7 +239,7 @@ export default function SideBar() {
             { text: "User Management", route: "/usermanagement" },
             { text: "Coupon Codes", route: "/couponcodes" },
             { text: "Staff Management", route: "/staffmanagement" },
-            { text: "Membership Management", route: "/agentmanagement" },
+            { text: "Subscription  Management", route: "/subscription" },
             { text: "Payment Management", route: "/paymentsmanagement" },
           ].map((item) => (
             <ListItem
@@ -287,7 +286,7 @@ export default function SideBar() {
                   {item.text === "Staff Management" && (
                     <PeopleIcon sx={{ color: "white" }} />
                   )}
-                  {item.text === "Membership Management" && (
+                  {item.text === "Subscription  Management" && (
                     <CardMembershipIcon sx={{ color: "white" }} />
                   )}
                   {item.text === "Payment Management" && (
