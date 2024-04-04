@@ -16,6 +16,7 @@ import CategoryComponent from "./Page/InventoryMangement/CategoryMangement";
 import StaffManagement from "./Page/StaffManagement/Staffmanagement";
 import { ToastContainer } from "react-toastify";
 import SubscriptionManagement from "./Page/Subscrption/subscription";
+import VendorManagement from "./Page/Vendormanagement/vendor";
 
 // Function to check if the token exists in cookies
 const getTokenFromCookies = () => {
@@ -98,6 +99,10 @@ export default function App() {
           <Route
             path="/subscription"
             element={<ProtectedRoute element={<SubscriptionManagement />} />}
+          />
+          <Route
+            path="/vendormanagement"
+            element={<ProtectedRoute element={<VendorManagement />} />}
           />
         </Routes>
       

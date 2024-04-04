@@ -48,33 +48,7 @@ const Coupons = () => {
     }
   };
 
-  const handleAddCoupon = async () => {
-    try {
-      const token = Cookies.get("token");
-      const response = await axios.post(
-        `${process.env.REACT_APP_BASE_URL}/admin/coupon/new`,
-        newCouponData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      if (response.data.success) {
-        setNewCouponData({
-          code: "",
-          amount: 0,
-          description: "",
-          limit: 0,
-        });
-        fetchAllCoupons();
-        toast.success("Coupon added successfully");
-      }
-    } catch (error) {
-      console.error("Error adding coupon:", error);
-      toast.error("Failed to add coupon");
-    }
-  };
+
 
   const handleDeleteConfirmation = (coupon) => {
     setCouponToDelete(coupon);
@@ -111,8 +85,46 @@ const Coupons = () => {
     setEditCouponData(coupon);
   };
 
+  const handleAddCoupon = async () => {
+    try {
+      if (newCouponData.amount < 0 || newCouponData.limit < 0) {
+        toast.error("Amount and Limit cannot be negative");
+        return;
+      }
+  
+      const token = Cookies.get("token");
+      const response = await axios.post(
+        `${process.env.REACT_APP_BASE_URL}/admin/coupon/new`,
+        newCouponData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (response.data.success) {
+        setNewCouponData({
+          code: "",
+          amount: 0,
+          description: "",
+          limit: 0,
+        });
+        fetchAllCoupons();
+        toast.success("Coupon added successfully");
+      }
+    } catch (error) {
+      console.error("Error adding coupon:", error);
+      toast.error("Failed to add coupon");
+    }
+  };
+  
   const handleUpdateCoupon = async () => {
     try {
+      if (editCouponData.amount < 0 || editCouponData.limit < 0) {
+        toast.error("Amount and Limit cannot be negative");
+        return;
+      }
+  
       const token = Cookies.get("token");
       const response = await axios.put(
         `${process.env.REACT_APP_BASE_URL}/admin/updatecoupon/${editCouponData._id}`,
@@ -133,6 +145,7 @@ const Coupons = () => {
       toast.error("Failed to update coupon");
     }
   };
+  
 
   const handleSort = (property) => {
     const isAsc = orderBy === property && order === "asc";

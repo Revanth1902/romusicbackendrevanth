@@ -63,7 +63,6 @@ const SubscriptionManagement = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
- 
   const handleDelete = async (subsId) => {
     try {
       const token = Cookies.get("token");
@@ -90,6 +89,13 @@ const SubscriptionManagement = () => {
   const handleCreateSubscription = async () => {
     setLoading(true); // Set loading to true before making the API request
     try {
+      // Validation
+      const amount = parseInt(formData.amount);
+      if (isNaN(amount) || amount <= 0 || formData.amount.includes(".")) {
+        toast.error("Amount must be a positive integer");
+        return;
+      }
+
       const token = Cookies.get("token");
       const response = await axios.post(
         `${process.env.REACT_APP_BASE_URL}/admin/subscription/new`,
@@ -115,10 +121,17 @@ const SubscriptionManagement = () => {
       setLoading(false); // Set loading to false after the API request completes
     }
   };
-  
+
   const handleUpdateSubscription = async () => {
     setLoading(true); // Set loading to true before making the API request
     try {
+      // Validation
+      const amount = parseInt(formData.amount);
+      if (isNaN(amount) || amount <= 0 || formData.amount.includes(".")) {
+        toast.error("Amount must be a positive integer");
+        return;
+      }
+
       const token = Cookies.get("token");
       const response = await axios.put(
         `${process.env.REACT_APP_BASE_URL}/admin/subscription/updateSubsDetails/${updatingSubscriptionId}`,
@@ -144,7 +157,7 @@ const SubscriptionManagement = () => {
       setLoading(false); // Set loading to false after the API request completes
     }
   };
-  
+
   const handleOpenAddDialog = () => {
     setOpenAddDialog(true);
     setFormData({ name: "", disc: "", amount: "" });

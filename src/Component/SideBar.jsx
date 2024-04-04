@@ -33,6 +33,7 @@ import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import ListAltIcon from "@mui/icons-material/ListAlt";
 import CardMembershipIcon from "@mui/icons-material/CardMembership";
 import { useNavigate, useLocation } from "react-router-dom";
+import LocalGroceryStoreIcon from "@mui/icons-material/LocalGroceryStore";
 const drawerWidth = 240;
 
 const openedMixin = (theme) => ({
@@ -240,6 +241,7 @@ export default function SideBar() {
             { text: "Coupon Codes", route: "/couponcodes" },
             { text: "Staff Management", route: "/staffmanagement" },
             { text: "Subscription  Management", route: "/subscription" },
+            { text: "Vendor Management", route: "/vendormanagement" },
             { text: "Payment Management", route: "/paymentsmanagement" },
           ].map((item) => (
             <ListItem
@@ -288,6 +290,9 @@ export default function SideBar() {
                   )}
                   {item.text === "Subscription  Management" && (
                     <CardMembershipIcon sx={{ color: "white" }} />
+                  )}
+                  {item.text === "Vendor Management" && (
+                    <LocalGroceryStoreIcon sx={{ color: "white" }} />
                   )}
                   {item.text === "Payment Management" && (
                     <PaymentIcon sx={{ color: "white" }} />
