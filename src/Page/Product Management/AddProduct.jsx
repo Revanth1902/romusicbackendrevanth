@@ -123,6 +123,34 @@ const PaymentsManagementnewproduct = () => {
       }
     }
   };
+  // Handle change for Price field
+  const handlePriceChange = (e) => {
+    const { value } = e.target;
+    // Check if the entered value is a non-negative integer
+    if (/^\d+$/.test(value) || value === "") {
+      setPrice(value);
+    }
+  };
+
+  // Handle change for MRP field
+ // Handle change for MRP field
+const handleMRPChange = (e) => {
+  const { value } = e.target;
+  // Check if the entered value is a non-negative integer
+  if (/^\d+$/.test(value) || value === "") {
+    setMrp(value); // Corrected to setMrp
+  }
+};
+
+
+  // Handle change for Stock field
+  const handleStockChange = (e) => {
+    const { value } = e.target;
+    // Check if the entered value is a non-negative integer
+    if (/^\d+$/.test(value) || value === "") {
+      setStock(value);
+    }
+  };
 
   // Handle image removal
   const handleImageRemove = (index) => {
@@ -271,16 +299,17 @@ const PaymentsManagementnewproduct = () => {
             <TextField
               label="Price"
               value={price}
-              onChange={(e) => setPrice(e.target.value)}
+              onChange={handlePriceChange}
               fullWidth
               margin="normal"
               type="number"
               sx={{ mr: 1 }}
             />
+
             <TextField
               label="MRP"
               value={mrp}
-              onChange={(e) => setMrp(e.target.value)}
+              onChange={handleMRPChange}
               fullWidth
               margin="normal"
               type="number"
@@ -298,11 +327,10 @@ const PaymentsManagementnewproduct = () => {
             <TextField
               label="Stock"
               value={stock}
-              onChange={(e) => setStock(e.target.value)}
+              onChange={handleStockChange}
               fullWidth
               margin="normal"
               type="number"
-              sx={{ flex: 1, marginRight: 1 }}
             />
             <FormControl
               margin="normal"

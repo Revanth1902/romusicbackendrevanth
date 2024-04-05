@@ -238,13 +238,22 @@ const EditProduct = () => {
             value={product.subCategory}
             onChange={handleChange}
           />
-          <label>Warranty Period:</label>
-          <input
-            type="text"
+          <label htmlFor="warranty-period">Warranty Period:</label>
+          <select
+            id="warranty-period"
             name="warrantyPeriod"
             value={product.warrantyPeriod}
             onChange={handleChange}
-          />
+          >
+            <option value="no warranty">No Warranty</option>
+            <option value="3 months">3 months</option>
+            <option value="6 months">6 months</option>
+            <option value="12 months">12 months</option>
+            <option value="24 months">24 months</option>
+            <option value="36 months">36 months</option>
+            <option value="48 months">48 months</option>
+          </select>
+
           <div>
             {product.productImages.length > 0 ? (
               product.productImages.map((image, index) => (
