@@ -29,19 +29,25 @@ export default function InventoryManagement() {
   const fetchAllBanners = async () => {
     try {
       const token = Cookies.get("token");
-      const response = await axios.get(
-        `https://e-commerce-backend-2ltj.onrender.com/api/v1/admin/getAllBanners`,
+      const response = await fetch(
+        `${process.env.REACT_APP_BASE_URL}/admin/getAllBanners`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      console.log(data); // Log the fetched data
       setBanners(
-        response.data.allBanner.map((banner) => ({
+        data.allBanner.map((banner) => ({
           ...banner,
-          category:
-            banner.category.charAt(0).toUpperCase() + banner.category.slice(1),
+          category: banner.category
+            ? banner.category.charAt(0).toUpperCase() + banner.category.slice(1)
+            : "", // Check if category exists
         }))
       );
     } catch (error) {
@@ -164,14 +170,14 @@ export default function InventoryManagement() {
                     <Box>
                       {banner.bannerImages.map((image, idx) => (
                         <img
-                          key={idx}
-                          src={image}
+                          key={image._id}
+                          src={image.bannerImage}
                           alt={`Banner ${idx + 1}`}
                           style={{ width: "200px", height: "auto" }}
                         />
                       ))}
                     </Box>
-                    <Typography>{banner.category}</Typography>
+                    <Typography>{banner.bannerImages[0].category}</Typography>
 
                     <Button
                       onClick={() => handleDeleteBanner(banner._id)}
