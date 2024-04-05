@@ -48,8 +48,6 @@ const Coupons = () => {
     }
   };
 
-
-
   const handleDeleteConfirmation = (coupon) => {
     setCouponToDelete(coupon);
     setShowDeleteConfirmation(true);
@@ -87,6 +85,11 @@ const Coupons = () => {
 
   const handleAddCoupon = async () => {
     try {
+      if (!Number.isInteger(newCouponData.amount) || !Number.isInteger(newCouponData.limit)) {
+        toast.error("Amount and Limit must be integers");
+        return;
+      }
+  
       if (newCouponData.amount < 0 || newCouponData.limit < 0) {
         toast.error("Amount and Limit cannot be negative");
         return;
@@ -120,6 +123,11 @@ const Coupons = () => {
   
   const handleUpdateCoupon = async () => {
     try {
+      if (!Number.isInteger(editCouponData.amount) || !Number.isInteger(editCouponData.limit)) {
+        toast.error("Amount and Limit must be integers");
+        return;
+      }
+  
       if (editCouponData.amount < 0 || editCouponData.limit < 0) {
         toast.error("Amount and Limit cannot be negative");
         return;
@@ -268,9 +276,10 @@ const Coupons = () => {
                 onChange={(e) =>
                   setNewCouponData({
                     ...newCouponData,
-                    amount: e.target.value,
+                    amount: e.target.value < 0 ? 0 : Math.floor(e.target.value),
                   })
                 }
+                min="0"
               />
               <input
                 type="text"
@@ -288,8 +297,12 @@ const Coupons = () => {
                 placeholder="Limit"
                 value={newCouponData.limit}
                 onChange={(e) =>
-                  setNewCouponData({ ...newCouponData, limit: e.target.value })
+                  setNewCouponData({
+                    ...newCouponData,
+                    limit: e.target.value < 0 ? 0 : Math.floor(e.target.value),
+                  })
                 }
+                min="0"
               />
               <button onClick={() => setShowAddCouponModal(false)}>
                 Cancel
@@ -322,9 +335,10 @@ const Coupons = () => {
                 onChange={(e) =>
                   setEditCouponData({
                     ...editCouponData,
-                    amount: e.target.value,
+                    amount: e.target.value < 0 ? 0 : Math.floor(e.target.value),
                   })
                 }
+                min="0"
               />
               <input
                 type="text"
@@ -344,9 +358,10 @@ const Coupons = () => {
                 onChange={(e) =>
                   setEditCouponData({
                     ...editCouponData,
-                    limit: e.target.value,
+                    limit: e.target.value < 0 ? 0 : Math.floor(e.target.value),
                   })
                 }
+                min="0"
               />
               <button onClick={handleUpdateCoupon}>Update</button>
               <button onClick={() => setEditCouponData(null)}>Cancel</button>

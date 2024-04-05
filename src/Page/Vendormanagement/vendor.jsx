@@ -44,7 +44,7 @@ const VendorManagement = () => {
   const [editingVendorId, setEditingVendorId] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedVendorId, setSelectedVendorId] = useState(null);
-
+  const [mobileError, setMobileError] = useState("");
   useEffect(() => {
     fetchVendors();
   }, []);
@@ -74,38 +74,44 @@ const VendorManagement = () => {
   };
 
   const handleInputChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+  
+    // Mobile number validation: Allow only numbers and ensure it has exactly 10 digits
+    if (name === "mobileNo") {
+      if (!/^\d{10}$/.test(value)) {
+        // Set the error message if the mobile number input doesn't meet the criteria
+        setMobileError("Mobile Number should be numeric and have exactly 10 digits");
+      } else {
+        // Clear the error message if the input is valid
+        setMobileError("");
+      }
+    }
+  
+    setFormData({ ...formData, [name]: value });
   };
-
   const handleCreateVendor = async () => {
     setLoading(true);
     try {
-      // Validation
-      if (!formData.name || !formData.mobileNo || !formData.email || !formData.password) {
-        toast.error("Name, Mobile Number,Password and Email are required fields");
-        return;
-      }
-      
-      // Name validation: Disallow special characters
-      const nameRegex = /^[a-zA-Z ]*$/; // Allows only letters and spaces
-      if (!nameRegex.test(formData.name)) {
-        toast.error("Name can only contain letters and spaces");
+      // Mobile number validation: Allow only numbers and ensure it has exactly 10 digits
+      if (!/^\d{10}$/.test(formData.mobileNo)) {
+        toast.error("Mobile Number should be numeric and have exactly 10 digits");
         return;
       }
   
-      // Mobile number validation: Allow only numbers
-      const mobileRegex = /^\d+$/;
-      if (!mobileRegex.test(formData.mobileNo)) {
-        toast.error("Mobile Number can only contain numbers");
+      // Validation for other fields
+      if (
+        !formData.name ||
+        !formData.mobileNo ||
+        !formData.email ||
+        !formData.password
+      ) {
+        toast.error(
+          "Name, Mobile Number, Password, and Email are required fields"
+        );
         return;
       }
   
-      // Email validation: Basic format check
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(formData.email)) {
-        toast.error("Invalid email format");
-        return;
-      }
+      // Other validation rules...
   
       const token = Cookies.get("token");
       const response = await axios.post(
@@ -142,32 +148,19 @@ const VendorManagement = () => {
   const handleEditVendor = async () => {
     setLoading(true);
     try {
-      // Validation
+      // Mobile number validation: Allow only numbers and ensure it has exactly 10 digits
+      if (!/^\d{10}$/.test(formData.mobileNo)) {
+        toast.error("Mobile Number should be numeric and have exactly 10 digits");
+        return;
+      }
+  
+      // Validation for other fields
       if (!formData.name || !formData.mobileNo || !formData.email) {
         toast.error("Name, Mobile Number, and Email are required fields");
         return;
       }
-      
-      // Name validation: Disallow special characters
-      const nameRegex = /^[a-zA-Z ]*$/; // Allows only letters and spaces
-      if (!nameRegex.test(formData.name)) {
-        toast.error("Name can only contain letters and spaces");
-        return;
-      }
   
-      // Mobile number validation: Allow only numbers
-      const mobileRegex = /^\d+$/;
-      if (!mobileRegex.test(formData.mobileNo)) {
-        toast.error("Mobile Number can only contain numbers");
-        return;
-      }
-  
-      // Email validation: Basic format check
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(formData.email)) {
-        toast.error("Invalid email format");
-        return;
-      }
+      // Other validation rules...
   
       const token = Cookies.get("token");
       const response = await axios.put(
@@ -214,8 +207,6 @@ const VendorManagement = () => {
     });
     setOpenEditDialog(true);
   };
-
-  
 
   const handleDeleteVendor = async (vendorId) => {
     try {

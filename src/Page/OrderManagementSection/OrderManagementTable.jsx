@@ -2,6 +2,7 @@ import * as React from "react";
 import PropTypes from "prop-types";
 import { alpha } from "@mui/material/styles";
 import Box from "@mui/material/Box";
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -103,7 +104,24 @@ export default function EnhancedTable() {
   const [selectedOrderDetails, setSelectedOrderDetails] = React.useState(null);
   const [selectedDate, setSelectedDate] = React.useState(null); // State to store selected date
   const [filterOpen, setFilterOpen] = React.useState(false); // State to manage filter dropdown visibility
+  const [day, setDay] = React.useState("");
+  const [month, setMonth] = React.useState("");
+  const [year, setYear] = React.useState("");
 
+  const handleDateChange = (e) => {
+    const { name, value } = e.target;
+    if (name === "day") setDay(value);
+    if (name === "month") setMonth(value);
+    if (name === "year") setYear(value);
+  };
+  const handleConfirm = () => {
+    if (day && month && year) {
+      const selected = new Date(`${year}-${month}-${day}`);
+      setSelectedDate(selected);
+    } else {
+      toast.error("Please select a complete date");
+    }
+  };
   React.useEffect(() => {
     fetchOrders();
   }, []);
@@ -303,22 +321,6 @@ export default function EnhancedTable() {
     }
   };
 
-  const DatePicker = ({ selected, onChange }) => (
-    <input
-      type="date"
-      value={selected}
-      onChange={(e) => onChange(new Date(e.target.value))}
-      style={{ width: "40px" }}
-    />
-  );
-  const handleFilterToggle = () => {
-    setFilterOpen(!filterOpen); // Toggle filter dropdown
-    if (!filterOpen) {
-      // If filter is being closed, reset selectedDate to null
-      setSelectedDate(null);
-    }
-  };
-
   return (
     <Box sx={{ width: "100%" }}>
       <Paper sx={{ width: "100%", mb: 2 }}>
@@ -358,7 +360,7 @@ export default function EnhancedTable() {
                   mr: 1.5,
                   display: "flex",
                   alignItems: "center",
-                  width: 250,
+                  width: 300,
                   border: "1px solid grey",
                 }}
               >
@@ -374,35 +376,56 @@ export default function EnhancedTable() {
                 </IconButton>
                 <Divider sx={{ height: 25, m: 0.5 }} orientation="vertical" />
               </Paper>
-              <Button
-                className="OrderManagementButton"
-                variant="contained"
-                sx={{
-                  background: "white",
-                  color: "black",
-                  p: "4.8px 15px",
-                  mr: 1.5,
+              <div
+                style={{
                   display: "flex",
                   alignItems: "center",
+                  justifyContent: "center",
+                  margin: "2%",
                 }}
-                onClick={handleFilterToggle} // Toggle filter dropdown and clear filter if closing
               >
-                <CalendarMonthIcon sx={{ mr: 1 }} />
-                {selectedDate ? (
-                  <Typography>{selectedDate.toLocaleDateString()}</Typography>
-                ) : (
-                  <Typography>Select Date</Typography>
-                )}
-              </Button>
-
-              {filterOpen && (
-                <DatePicker
-                  selected={selectedDate}
-                  onChange={(date) => setSelectedDate(date)}
-                  inline // Display the calendar inline
-                  style={{ width: "10%" }} // Adjust the width as needed
+                <CalendarMonthIcon
+                  sx={{ cursor: "pointer" }}
+                  onClick={() => setSelectedDate(null)}
+                  style={{ margin: "2%", marginTop: "1%" }}
                 />
-              )}
+
+                <input
+                  type="number"
+                  name="day"
+                  placeholder="Day"
+                  value={day}
+                  onChange={handleDateChange}
+                  style={{ width: "70px", marginRight: "5px" }}
+                />
+                <input
+                  type="number"
+                  name="month"
+                  placeholder="Month"
+                  value={month}
+                  onChange={handleDateChange}
+                  style={{ width: "90px", marginRight: "5px" }}
+                />
+                <input
+                  type="number"
+                  name="year"
+                  placeholder="Year"
+                  value={year}
+                  onChange={handleDateChange}
+                  style={{ width: "90px", marginRight: "5px" }}
+                />
+                <CheckCircleOutlineIcon
+                  sx={{ cursor: "pointer" }}
+                  onClick={handleConfirm}
+                  style={{ margin: "2%", marginTop: "-1%" }}
+                />
+
+                {selectedDate && (
+                  <Typography style={{ marginLeft: "5px" }}>
+                    {selectedDate.toLocaleDateString()}
+                  </Typography>
+                )}
+              </div>
             </Box>
           </Box>
         </Toolbar>
