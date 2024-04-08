@@ -28,6 +28,8 @@ const SubscriptionManagement = () => {
     name: "",
     disc: "",
     amount: "",
+    timePeriod: "", // Added timePeriod field
+    image: null,
   });
   const [updatingSubscriptionId, setUpdatingSubscriptionId] = useState(null);
 
@@ -60,7 +62,11 @@ const SubscriptionManagement = () => {
   };
 
   const handleInputChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    if (e.target.name === "image") {
+      setFormData({ ...formData, image: e.target.files[0] });
+    } else {
+      setFormData({ ...formData, [e.target.name]: e.target.value });
+    }
   };
 
   const handleDelete = async (subsId) => {
@@ -87,22 +93,36 @@ const SubscriptionManagement = () => {
   };
 
   const handleCreateSubscription = async () => {
-    setLoading(true); // Set loading to true before making the API request
+    setLoading(true);
     try {
-      // Validation
       const amount = parseInt(formData.amount);
-      if (isNaN(amount) || amount <= 0 || formData.amount.includes(".")) {
-        toast.error("Amount must be a positive integer");
+      const timePeriodInMonths = parseInt(formData.timePeriod); // Parse timePeriod to integer
+      if (
+        isNaN(amount) ||
+        amount <= 0 ||
+        isNaN(timePeriodInMonths) || // Check if timePeriod is not a number
+        timePeriodInMonths <= 0 || // Check if timePeriod is less than or equal to 0
+        !Number.isInteger(timePeriodInMonths) || // Check if timePeriod is not an integer
+        formData.amount.toString().includes(".") // Check if amount contains decimal points
+      ) {
+        toast.error(
+          "Please provide a valid amount and time period (in months)"
+        );
         return;
       }
 
       const token = Cookies.get("token");
+      const formDataWithImage = new FormData();
+      Object.entries(formData).forEach(([key, value]) => {
+        formDataWithImage.append(key, value);
+      });
       const response = await axios.post(
         `${process.env.REACT_APP_BASE_URL}/admin/subscription/new`,
-        formData,
+        formDataWithImage,
         {
           headers: {
             Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
           },
         }
       );
@@ -112,33 +132,53 @@ const SubscriptionManagement = () => {
         toast.success("Subscription created successfully");
         setOpenAddDialog(false);
         fetchSubscriptions();
-        setFormData({ name: "", disc: "", amount: "" });
+        setFormData({
+          name: "",
+          disc: "",
+          amount: "",
+          timePeriod: "",
+          image: null,
+        });
       }
     } catch (error) {
       console.error("Error creating subscription:", error);
       toast.error("Failed to create subscription");
     } finally {
-      setLoading(false); // Set loading to false after the API request completes
+      setLoading(false);
     }
   };
 
   const handleUpdateSubscription = async () => {
-    setLoading(true); // Set loading to true before making the API request
+    setLoading(true);
     try {
-      // Validation
       const amount = parseInt(formData.amount);
-      if (isNaN(amount) || amount <= 0 || formData.amount.includes(".")) {
-        toast.error("Amount must be a positive integer");
+      const timePeriodInMonths = parseInt(formData.timePeriod); // Parse timePeriod to integer
+      if (
+        isNaN(amount) ||
+        amount <= 0 ||
+        isNaN(timePeriodInMonths) || // Check if timePeriod is not a number
+        timePeriodInMonths <= 0 || // Check if timePeriod is less than or equal to 0
+        !Number.isInteger(timePeriodInMonths) || // Check if timePeriod is not an integer
+        formData.amount.toString().includes(".") // Check if amount contains decimal points
+      ) {
+        toast.error(
+          "Please provide a valid amount and time period (in months)"
+        );
         return;
       }
 
       const token = Cookies.get("token");
+      const formDataWithImage = new FormData();
+      Object.entries(formData).forEach(([key, value]) => {
+        formDataWithImage.append(key, value);
+      });
       const response = await axios.put(
         `${process.env.REACT_APP_BASE_URL}/admin/subscription/updateSubsDetails/${updatingSubscriptionId}`,
-        formData,
+        formDataWithImage,
         {
           headers: {
             Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
           },
         }
       );
@@ -148,19 +188,31 @@ const SubscriptionManagement = () => {
         toast.success("Subscription updated successfully");
         setOpenEditDialog(false);
         fetchSubscriptions();
-        setFormData({ name: "", disc: "", amount: "" });
+        setFormData({
+          name: "",
+          disc: "",
+          amount: "",
+          timePeriod: "",
+          image: null,
+        });
       }
     } catch (error) {
       console.error("Error updating subscription:", error);
       toast.error("Failed to update subscription");
     } finally {
-      setLoading(false); // Set loading to false after the API request completes
+      setLoading(false);
     }
   };
 
   const handleOpenAddDialog = () => {
     setOpenAddDialog(true);
-    setFormData({ name: "", disc: "", amount: "" });
+    setFormData({
+      name: "",
+      disc: "",
+      amount: "",
+      timePeriod: "",
+      image: null,
+    });
   };
 
   const handleOpenEditDialog = (subscriptionId) => {
@@ -173,6 +225,8 @@ const SubscriptionManagement = () => {
       name: subscriptionToUpdate.name,
       disc: subscriptionToUpdate.disc,
       amount: subscriptionToUpdate.amount,
+      timePeriod: subscriptionToUpdate.timePeriod, // Set timePeriod field
+      image: null,
     });
   };
 
@@ -211,8 +265,13 @@ const SubscriptionManagement = () => {
               >
                 <div className="pricing-block-content">
                   <img
-                    src="https://png.pngtree.com/png-clipart/20230825/original/pngtree-businessman-checklist-person-office-worker-picture-image_8479569.png"
+                    src={subscription.image}
                     alt=""
+                    style={{
+                      width: "200px",
+                      height: "auto",
+                      alignSelf: "center",
+                    }}
                   />
                   <h1 style={{ alignSelf: "center" }}>
                     {subscription.name.charAt(0).toUpperCase() +
@@ -225,6 +284,9 @@ const SubscriptionManagement = () => {
                   <h2 style={{ alignSelf: "center" }}>
                     ₹{subscription.amount}
                   </h2>
+                  <h3 style={{ alignSelf: "center" }}>
+                    Validity: {subscription.timePeriod} Months
+                  </h3>
                   <div
                     style={{
                       display: "flex",
@@ -275,19 +337,41 @@ const SubscriptionManagement = () => {
             fullWidth
             margin="normal"
           />
+          <TextField
+            name="timePeriod"
+            label="Time Period (Months)"
+            value={formData.timePeriod}
+            onChange={handleInputChange}
+            fullWidth
+            margin="normal"
+          />
+          <input
+            type="file"
+            accept="image/*"
+            name="image"
+            onChange={handleInputChange}
+          />
+          {formData.image && (
+            <img
+              src={URL.createObjectURL(formData.image)}
+              alt="Preview"
+              style={{
+                width: "200px",
+                height: "auto",
+                alignSelf: "center",
+                marginTop:"1%"
+              }}
+            />
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenAddDialog(false)}>Cancel</Button>
           <Button
             onClick={handleCreateSubscription}
             color="primary"
-            disabled={loading} // Disable the button when loading is true
+            disabled={loading}
           >
-            {loading ? ( // Show loader when loading is true
-              <CircularProgress size={24} color="primary" />
-            ) : (
-              "Add"
-            )}
+            {loading ? <CircularProgress size={24} color="primary" /> : "Add"}
           </Button>
         </DialogActions>
       </Dialog>
@@ -318,15 +402,41 @@ const SubscriptionManagement = () => {
             fullWidth
             margin="normal"
           />
+          <TextField
+            name="timePeriod"
+            label="Time Period"
+            value={formData.timePeriod}
+            onChange={handleInputChange}
+            fullWidth
+            margin="normal"
+          />
+          <input
+            type="file"
+            accept="image/*"
+            name="image"
+            onChange={handleInputChange}
+          />
+          {formData.image && (
+            <img
+              src={URL.createObjectURL(formData.image)}
+              alt="Preview"
+              style={{
+                width: "200px",
+                height: "auto",
+                alignSelf: "center",
+                marginTop:"1%"
+              }}
+            />
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenEditDialog(false)}>Cancel</Button>
           <Button
             onClick={handleUpdateSubscription}
             color="primary"
-            disabled={loading} // Disable the button when loading is true
+            disabled={loading}
           >
-            {loading ? ( // Show loader when loading is true
+            {loading ? (
               <CircularProgress size={24} color="primary" />
             ) : (
               "Update"

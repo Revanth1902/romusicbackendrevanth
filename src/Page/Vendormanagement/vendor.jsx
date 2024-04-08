@@ -45,6 +45,7 @@ const VendorManagement = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedVendorId, setSelectedVendorId] = useState(null);
   const [mobileError, setMobileError] = useState("");
+
   useEffect(() => {
     fetchVendors();
   }, []);
@@ -53,7 +54,7 @@ const VendorManagement = () => {
     try {
       const token = Cookies.get("token");
       const response = await axios.get(
-        `${process.env.REACT_APP_BASE_URL}//vendor/get`,
+        `${process.env.REACT_APP_BASE_URL}/vendor/get`, // Fixed URL path
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -75,29 +76,34 @@ const VendorManagement = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-  
+
     // Mobile number validation: Allow only numbers and ensure it has exactly 10 digits
     if (name === "mobileNo") {
       if (!/^\d{10}$/.test(value)) {
         // Set the error message if the mobile number input doesn't meet the criteria
-        setMobileError("Mobile Number should be numeric and have exactly 10 digits");
+        setMobileError(
+          "Mobile Number should be numeric and have exactly 10 digits"
+        );
       } else {
         // Clear the error message if the input is valid
         setMobileError("");
       }
     }
-  
+
     setFormData({ ...formData, [name]: value });
   };
+
   const handleCreateVendor = async () => {
     setLoading(true);
     try {
       // Mobile number validation: Allow only numbers and ensure it has exactly 10 digits
       if (!/^\d{10}$/.test(formData.mobileNo)) {
-        toast.error("Mobile Number should be numeric and have exactly 10 digits");
+        toast.error(
+          "Mobile Number should be numeric and have exactly 10 digits"
+        );
         return;
       }
-  
+
       // Validation for other fields
       if (
         !formData.name ||
@@ -110,12 +116,12 @@ const VendorManagement = () => {
         );
         return;
       }
-  
+
       // Other validation rules...
-  
+
       const token = Cookies.get("token");
       const response = await axios.post(
-        `${process.env.REACT_APP_BASE_URL}/admin/Vendor/new`,
+        `${process.env.REACT_APP_BASE_URL}/admin/Vendor/new`, // Fixed URL path
         formData,
         {
           headers: {
@@ -144,27 +150,29 @@ const VendorManagement = () => {
       setLoading(false);
     }
   };
-  
+
   const handleEditVendor = async () => {
     setLoading(true);
     try {
       // Mobile number validation: Allow only numbers and ensure it has exactly 10 digits
       if (!/^\d{10}$/.test(formData.mobileNo)) {
-        toast.error("Mobile Number should be numeric and have exactly 10 digits");
+        toast.error(
+          "Mobile Number should be numeric and have exactly 10 digits"
+        );
         return;
       }
-  
+
       // Validation for other fields
       if (!formData.name || !formData.mobileNo || !formData.email) {
         toast.error("Name, Mobile Number, and Email are required fields");
         return;
       }
-  
+
       // Other validation rules...
-  
+
       const token = Cookies.get("token");
       const response = await axios.put(
-        `${process.env.REACT_APP_BASE_URL}//admin/vendor/updateDetails/${editingVendorId}`,
+        `${process.env.REACT_APP_BASE_URL}/admin/vendor/updateDetails/${editingVendorId}`, // Fixed URL path
         formData,
         {
           headers: {
@@ -193,7 +201,6 @@ const VendorManagement = () => {
       setLoading(false);
     }
   };
-  
 
   const handleOpenEditDialog = (vendorId) => {
     setEditingVendorId(vendorId);
@@ -212,7 +219,7 @@ const VendorManagement = () => {
     try {
       const token = Cookies.get("token");
       const response = await axios.delete(
-        `${process.env.REACT_APP_BASE_URL}//admin/vendor/delete/${vendorId}`,
+        `${process.env.REACT_APP_BASE_URL}/admin/vendor/delete/${vendorId}`, // Fixed URL path
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -231,6 +238,17 @@ const VendorManagement = () => {
     }
   };
 
+  const handleOpenCreateDialog = () => {
+    setOpenCreateDialog(true);
+    setFormData({
+      name: "",
+      mobileNo: "",
+      email: "",
+      password: "",
+      address: "",
+    });
+  };
+
   const handleConfirmDelete = () => {
     handleDeleteVendor(selectedVendorId);
     setDeleteDialogOpen(false);
@@ -243,7 +261,7 @@ const VendorManagement = () => {
         <Button
           sx={{ background: "orange" }}
           variant="contained"
-          onClick={() => setOpenCreateDialog(true)}
+          onClick={handleOpenCreateDialog}
         >
           Create Vendor
         </Button>
@@ -399,7 +417,11 @@ const VendorManagement = () => {
           <Button onClick={() => setOpenEditDialog(false)}>
             <CancelIcon /> Cancel
           </Button>
-          <Button onClick={handleEditVendor} color="primary" disabled={loading}>
+          <Button
+            onClick={handleEditVendor}
+            color="primary"
+            disabled={loading}
+          >
             {loading ? (
               <CircularProgress size={24} color="primary" />
             ) : (

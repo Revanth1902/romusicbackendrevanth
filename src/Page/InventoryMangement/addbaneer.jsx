@@ -11,6 +11,7 @@ const BannerComponent = () => {
   const navigate = useNavigate();
   const [categoryOptions, setCategoryOptions] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedSubCategory, setSelectedSubCategory] = useState("");
   const [previewImages, setPreviewImages] = useState([]);
   const [submitting, setSubmitting] = useState(false); // State to track form submission
 
@@ -30,12 +31,7 @@ const BannerComponent = () => {
         }
       );
       if (response.data.success) {
-        setCategoryOptions(
-          response.data.categories.map((category) => ({
-            ...category,
-            categoryName: capitalizeFirstLetter(category.categoryName),
-          }))
-        );
+        setCategoryOptions(response.data.categories);
       } else {
         setCategoryOptions([]);
       }
@@ -44,12 +40,12 @@ const BannerComponent = () => {
     }
   };
 
-  const capitalizeFirstLetter = (string) => {
-    return string.charAt(0).toUpperCase() + string.slice(1);
-  };
-
   const handleCategoryChange = (e) => {
     setSelectedCategory(e.target.value);
+  };
+
+  const handleSubCategoryChange = (e) => {
+    setSelectedSubCategory(e.target.value);
   };
 
   const handleImageChange = (e) => {
@@ -76,7 +72,7 @@ const BannerComponent = () => {
 
   const handleSubmit = async () => {
     try {
-      if (!selectedCategory || previewImages.length === 0 || submitting) {
+      if (!selectedCategory || !selectedSubCategory || previewImages.length === 0 || submitting) {
         return; // Do nothing if submitting or missing required data
       }
 
@@ -84,9 +80,10 @@ const BannerComponent = () => {
 
       const token = Cookies.get("token");
       const formData = new FormData();
-      formData.append("category", selectedCategory);
+      formData.append("categories", selectedCategory);
+      formData.append("subCategory", selectedSubCategory);
       previewImages.forEach((image) => {
-        formData.append("bannerImages", image.file);
+        formData.append("bannerImage", image.file);
       });
       const response = await axios.post(
         `${process.env.REACT_APP_BASE_URL}/admin/banner/new`,
@@ -104,6 +101,7 @@ const BannerComponent = () => {
         navigate("/inventorymanagement  ");
         setPreviewImages([]);
         setSelectedCategory("");
+        setSelectedSubCategory("");
       } else {
         toast.error("Failed to create banner");
       }
@@ -134,6 +132,15 @@ const BannerComponent = () => {
               </option>
             ))}
           </select>
+        </div>
+        <div>
+          <label htmlFor="subCategory">Subcategory:</label>
+          <input
+            type="text"
+            id="subCategory"
+            value={selectedSubCategory}
+            onChange={handleSubCategoryChange}
+          />
         </div>
         <div>
           <label htmlFor="image">Banner Image:</label>
