@@ -76,7 +76,11 @@ const VendorManagement = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-
+    
+    // Regular expressions for validation
+    const nameRegex = /^[a-zA-Z\s]+$/; // Only alphabets and spaces allowed
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Email format validation
+    
     // Mobile number validation: Allow only numbers and ensure it has exactly 10 digits
     if (name === "mobileNo") {
       if (!/^\d{10}$/.test(value)) {
@@ -89,10 +93,21 @@ const VendorManagement = () => {
         setMobileError("");
       }
     }
-
+    
+    // Validation for Staff Name
+    if (name === "name") {
+      if (!nameRegex.test(value)) {
+        toast.error("Staff Name should only contain alphabets and spaces");
+        return; // Prevent further processing if validation fails
+      }
+    }
+    
+    
+    
     setFormData({ ...formData, [name]: value });
   };
-
+  
+  
   const handleCreateVendor = async () => {
     setLoading(true);
     try {
@@ -103,7 +118,7 @@ const VendorManagement = () => {
         );
         return;
       }
-
+  
       // Validation for other fields
       if (
         !formData.name ||
@@ -116,9 +131,17 @@ const VendorManagement = () => {
         );
         return;
       }
-
+  
+      // Regular expression for email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      // Check if email is in proper format
+      if (!emailRegex.test(formData.email)) {
+        toast.error("Invalid email format");
+        return;
+      }
+  
       // Other validation rules...
-
+  
       const token = Cookies.get("token");
       const response = await axios.post(
         `${process.env.REACT_APP_BASE_URL}/admin/Vendor/new`, // Fixed URL path
@@ -150,6 +173,7 @@ const VendorManagement = () => {
       setLoading(false);
     }
   };
+  
 
   const handleEditVendor = async () => {
     setLoading(true);
@@ -161,15 +185,23 @@ const VendorManagement = () => {
         );
         return;
       }
-
+  
       // Validation for other fields
       if (!formData.name || !formData.mobileNo || !formData.email) {
         toast.error("Name, Mobile Number, and Email are required fields");
         return;
       }
-
+  
+      // Regular expression for email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      // Check if email is in proper format
+      if (!emailRegex.test(formData.email)) {
+        toast.error("Invalid email format");
+        return;
+      }
+  
       // Other validation rules...
-
+  
       const token = Cookies.get("token");
       const response = await axios.put(
         `${process.env.REACT_APP_BASE_URL}/admin/vendor/updateDetails/${editingVendorId}`, // Fixed URL path
@@ -201,6 +233,7 @@ const VendorManagement = () => {
       setLoading(false);
     }
   };
+  
 
   const handleOpenEditDialog = (vendorId) => {
     setEditingVendorId(vendorId);

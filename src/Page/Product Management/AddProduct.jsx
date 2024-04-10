@@ -48,6 +48,7 @@ const PaymentsManagementnewproduct = () => {
   const [open, setOpen] = useState(false);
   const [brands, setBrands] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [submitting, setSubmitting] = useState(false); // State variable to track submission
 
   // Fetch data on component mount
   useEffect(() => {
@@ -123,6 +124,7 @@ const PaymentsManagementnewproduct = () => {
       }
     }
   };
+
   // Handle change for Price field
   const handlePriceChange = (e) => {
     const { value } = e.target;
@@ -133,15 +135,13 @@ const PaymentsManagementnewproduct = () => {
   };
 
   // Handle change for MRP field
- // Handle change for MRP field
-const handleMRPChange = (e) => {
-  const { value } = e.target;
-  // Check if the entered value is a non-negative integer
-  if (/^\d+$/.test(value) || value === "") {
-    setMrp(value); // Corrected to setMrp
-  }
-};
-
+  const handleMRPChange = (e) => {
+    const { value } = e.target;
+    // Check if the entered value is a non-negative integer
+    if (/^\d+$/.test(value) || value === "") {
+      setMrp(value);
+    }
+  };
 
   // Handle change for Stock field
   const handleStockChange = (e) => {
@@ -162,6 +162,8 @@ const handleMRPChange = (e) => {
   // Handle form submission
   const handleSubmit = async () => {
     try {
+      if (submitting) return; // Prevent multiple clicks
+      setSubmitting(true); // Set submitting state to true
       const token = Cookies.get("token");
       const formData = new FormData();
       formData.append("name", productName);
@@ -213,6 +215,8 @@ const handleMRPChange = (e) => {
     } catch (error) {
       console.error("Error adding product:", error);
       toast.error("Failed to add product");
+    } finally {
+      setSubmitting(false); // Reset submitting state
     }
   };
 
@@ -463,8 +467,13 @@ const handleMRPChange = (e) => {
             </Box>
           </Box>
           {/* Add Product button */}
-          <Button variant="contained" onClick={handleSubmit} sx={{ mt: 2 }}>
-            Add Product
+          <Button
+            variant="contained"
+            onClick={handleSubmit}
+            disabled={submitting} 
+            sx={{ mt: 2 }}
+          >
+            {submitting ? "Adding..." : "Add Product"}
           </Button>
         </FormGroup>
       </Box>

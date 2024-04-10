@@ -129,9 +129,9 @@ const StaffManagement = () => {
         }
 
         // Validate names format
-        const nameRegex = /^[a-zA-Z]+$/;
+        const nameRegex = /^[a-zA-Z\s]+$/; // Updated regex pattern
         if (!nameRegex.test(addStaffData.firstName) || !nameRegex.test(addStaffData.lastName)) {
-            toast.error("Invalid name format. Names should contain only letters.");
+            toast.error("Invalid name format. Names should contain only letters and spaces.");
             return;
         }
 
@@ -183,6 +183,7 @@ const StaffManagement = () => {
         setSubmitting(false); // End submission
     }
 };
+
 
 const handleEditSave = async () => {
     try {
