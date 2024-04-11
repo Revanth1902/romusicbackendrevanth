@@ -156,7 +156,7 @@ const VendorManagement = () => {
         if (response.data.message === "Mobile number is already in use") {
           toast.error(response.data.message);
         } else {
-          toast.error("Failed to create vendor");
+          toast.error(response.data.message);
         }
       } else {
         toast.success("Vendor created successfully");
