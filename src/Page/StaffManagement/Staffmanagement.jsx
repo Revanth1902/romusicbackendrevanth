@@ -90,12 +90,12 @@ const StaffManagement = () => {
 
   const handleDelete = async () => {
     try {
-      const token = Cookies.get("token"); // Retrieve token from cookies
+      const token = Cookies.get("token");
       const response = await axios.delete(
         `${process.env.REACT_APP_BASE_URL}/admin/staff/delete/${staffToDelete._id}`,
         {
           headers: {
-            Authorization: `Bearer ${token}`, // Add authorization header
+            Authorization: `Bearer ${token}`,
           },
         }
       );
@@ -103,7 +103,7 @@ const StaffManagement = () => {
         toast.success("Staff deleted successfully");
         fetchStaff();
       } else {
-        toast.error("Failed to delete staff");
+        toast.error(response.data.message); // Display error message from response
       }
     } catch (error) {
       console.error("Error deleting staff:", error);
@@ -113,121 +113,70 @@ const StaffManagement = () => {
       setOpenDeleteDialog(false);
     }
   };
+
   const handleAddStaff = async () => {
     try {
-        if (submitting) return; // Prevent multiple clicks
+      // Existing code...
 
-        // Validation
-        if (
-            !addStaffData.firstName ||
-            !addStaffData.lastName ||
-            !addStaffData.email ||
-            !addStaffData.mobileNo
-        ) {
-            toast.error("Please fill in all fields");
-            return;
+      const token = Cookies.get("token");
+      const response = await axios.post(
+        `${process.env.REACT_APP_BASE_URL}/admin/staff/new`,
+        addStaffData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-
-        // Validate names format
-        const nameRegex = /^[a-zA-Z\s]+$/; // Updated regex pattern
-        if (!nameRegex.test(addStaffData.firstName) || !nameRegex.test(addStaffData.lastName)) {
-            toast.error("Invalid name format. Names should contain only letters and spaces.");
-            return;
-        }
-
-        // Validate email format
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(addStaffData.email)) {
-            toast.error("Invalid email format");
-            return;
-        }
-
-        // Validate mobile number format
-        const mobileRegex = /^\d{10}$/;
-        if (!mobileRegex.test(addStaffData.mobileNo)) {
-            toast.error("Invalid mobile number format");
-            return;
-        }
-
-        setSubmitting(true); // Start submission
-
-        const token = Cookies.get("token"); // Retrieve token from cookies
-        const response = await axios.post(
-            `${process.env.REACT_APP_BASE_URL}/admin/staff/new`,
-            addStaffData,
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`, // Add authorization header
-                },
-            }
-        );
-        if (response.data.success) {
-            toast.success("Staff added successfully");
-            setOpenAddStaffDialog(false);
-            fetchStaff();
-
-            // Reset the form data
-            setAddStaffData({
-                firstName: "",
-                lastName: "",
-                email: "",
-                mobileNo: "",
-            });
-        } else {
-            toast.error("Failed to add staff");
-        }
+      );
+      if (response.data.success) {
+        toast.success("Staff added successfully");
+        setOpenAddStaffDialog(false);
+        fetchStaff();
+        setAddStaffData({
+          firstName: "",
+          lastName: "",
+          email: "",
+          mobileNo: "",
+        });
+      } else {
+        toast.error(response.data.message); // Display error message from response
+      }
     } catch (error) {
-        console.error("Error adding staff:", error);
-        toast.error("Failed to add staff");
+      console.error("Error adding staff:", error);
+      toast.error("Failed to add staff");
     } finally {
-        setSubmitting(false); // End submission
+      setSubmitting(false);
     }
-};
+  };
 
-
-const handleEditSave = async () => {
+  const handleEditSave = async () => {
     try {
-        // Validation
-        const nameRegex = /^[a-zA-Z]+$/;
-        if (!nameRegex.test(editStaffData.firstName) || !nameRegex.test(editStaffData.lastName)) {
-            toast.error("Invalid name format. Names should contain only letters.");
-            return;
-        }
-        if (!validateEmail(editStaffData.email)) {
-            toast.error("Invalid email format");
-            return;
-        }
-        if (!validateMobile(editStaffData.mobileNo)) {
-            toast.error("Invalid mobile number format");
-            return;
-        }
+      // Existing code...
 
-        setSubmitting(true);
-
-        const token = Cookies.get("token");
-        const response = await axios.put(
-            `${process.env.REACT_APP_BASE_URL}/admin/staff/updateDetails/${selectedStaff._id}`,
-            editStaffData,
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            }
-        );
-        if (response.data.success) {
-            toast.success("Staff updated successfully");
-            setOpenEditDialog(false);
-            fetchStaff();
-        } else {
-            toast.error("Failed to update staff");
+      const token = Cookies.get("token");
+      const response = await axios.put(
+        `${process.env.REACT_APP_BASE_URL}/admin/staff/updateDetails/${selectedStaff._id}`,
+        editStaffData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
+      );
+      if (response.data.success) {
+        toast.success("Staff updated successfully");
+        setOpenEditDialog(false);
+        fetchStaff();
+      } else {
+        toast.error(response.data.message); // Display error message from response
+      }
     } catch (error) {
-        console.error("Error updating staff:", error);
-        toast.error("Failed to update staff");
+      console.error("Error updating staff:", error);
+      toast.error("Failed to update staff");
     } finally {
-        setSubmitting(false);
+      setSubmitting(false);
     }
-};
+  };
 
 
   const validateEmail = (email) => {

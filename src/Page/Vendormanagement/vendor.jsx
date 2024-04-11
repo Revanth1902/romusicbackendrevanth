@@ -153,7 +153,11 @@ const VendorManagement = () => {
         }
       );
       if (response.data.success) {
-        toast.error("Failed to create vendor");
+        if (response.data.message === "Mobile number is already in use") {
+          toast.error(response.data.message);
+        } else {
+          toast.error("Failed to create vendor");
+        }
       } else {
         toast.success("Vendor created successfully");
         setOpenCreateDialog(false);
@@ -174,7 +178,6 @@ const VendorManagement = () => {
     }
   };
   
-
   const handleEditVendor = async () => {
     setLoading(true);
     try {
@@ -213,7 +216,11 @@ const VendorManagement = () => {
         }
       );
       if (response.data.success) {
-        toast.error("Failed to update vendor");
+        if (response.data.message === "Mobile number is already in use") {
+          toast.error(response.data.message);
+        } else {
+          toast.error("Failed to update vendor");
+        }
       } else {
         toast.success("Vendor updated successfully");
         setOpenEditDialog(false);
@@ -233,6 +240,7 @@ const VendorManagement = () => {
       setLoading(false);
     }
   };
+  
   
 
   const handleOpenEditDialog = (vendorId) => {
