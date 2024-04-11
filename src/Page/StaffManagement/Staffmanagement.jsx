@@ -107,7 +107,7 @@ const StaffManagement = () => {
       }
     } catch (error) {
       console.error("Error deleting staff:", error);
-      toast.error("Failed to delete staff");
+      toast.error(response.data.message);
     } finally {
       setStaffToDelete(null);
       setOpenDeleteDialog(false);
@@ -143,7 +143,7 @@ const StaffManagement = () => {
       }
     } catch (error) {
       console.error("Error adding staff:", error);
-      toast.error("Failed to add staff");
+      toast.error(response.data.message);
     } finally {
       setSubmitting(false);
     }
@@ -172,7 +172,7 @@ const StaffManagement = () => {
       }
     } catch (error) {
       console.error("Error updating staff:", error);
-      toast.error("Failed to update staff");
+      toast.error(response.data.message);
     } finally {
       setSubmitting(false);
     }
