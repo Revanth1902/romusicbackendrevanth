@@ -91,44 +91,49 @@ const StaffManagement = () => {
   const handleDelete = async () => {
     try {
       const token = Cookies.get("token");
-      const response = await axios.delete(
+      const response = await fetch(
         `${process.env.REACT_APP_BASE_URL}/admin/staff/delete/${staffToDelete._id}`,
         {
+          method: "DELETE",
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
-      if (response.data.success) {
+      const data = await response.json();
+      if (data.success) {
         toast.success("Staff deleted successfully");
         fetchStaff();
       } else {
-        toast.error(response.data.message); // Display error message from response
+        toast.error(data.message); // Display error message from response
       }
     } catch (error) {
       console.error("Error deleting staff:", error);
-      toast.error(response.data.message);
+      toast.error("Failed to delete staff");
     } finally {
       setStaffToDelete(null);
       setOpenDeleteDialog(false);
     }
   };
-
+  
   const handleAddStaff = async () => {
     try {
       // Existing code...
-
+  
       const token = Cookies.get("token");
-      const response = await axios.post(
+      const response = await fetch(
         `${process.env.REACT_APP_BASE_URL}/admin/staff/new`,
-        addStaffData,
         {
+          method: "POST",
           headers: {
             Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
           },
+          body: JSON.stringify(addStaffData),
         }
       );
-      if (response.data.success) {
+      const data = await response.json();
+      if (data.success) {
         toast.success("Staff added successfully");
         setOpenAddStaffDialog(false);
         fetchStaff();
@@ -139,44 +144,48 @@ const StaffManagement = () => {
           mobileNo: "",
         });
       } else {
-        toast.error(response.data.message); // Display error message from response
+        toast.error(data.message); // Display error message from response
       }
     } catch (error) {
       console.error("Error adding staff:", error);
-      toast.error(response.data.message);
+      toast.error("Failed to add staff");
     } finally {
       setSubmitting(false);
     }
   };
-
+  
   const handleEditSave = async () => {
     try {
       // Existing code...
-
+  
       const token = Cookies.get("token");
-      const response = await axios.put(
+      const response = await fetch(
         `${process.env.REACT_APP_BASE_URL}/admin/staff/updateDetails/${selectedStaff._id}`,
-        editStaffData,
         {
+          method: "PUT",
           headers: {
             Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
           },
+          body: JSON.stringify(editStaffData),
         }
       );
-      if (response.data.success) {
+      const data = await response.json();
+      if (data.success) {
         toast.success("Staff updated successfully");
         setOpenEditDialog(false);
         fetchStaff();
       } else {
-        toast.error(response.data.message); // Display error message from response
+        toast.error(data.message); // Display error message from response
       }
     } catch (error) {
       console.error("Error updating staff:", error);
-      toast.error(response.data.message);
+      toast.error("Failed to update staff");
     } finally {
       setSubmitting(false);
     }
   };
+  
 
 
   const validateEmail = (email) => {

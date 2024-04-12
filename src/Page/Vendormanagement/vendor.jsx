@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 import {
   Button,
   TextField,
@@ -19,6 +20,7 @@ import {
   Paper,
   IconButton,
   DialogContentText,
+
 } from "@mui/material";
 import Cookies from "js-cookie";
 import { ToastContainer, toast } from "react-toastify";
@@ -45,10 +47,37 @@ const VendorManagement = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedVendorId, setSelectedVendorId] = useState(null);
   const [mobileError, setMobileError] = useState("");
+  const [viewingVendorData, setViewingVendorData] = useState(null);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [selectedVendorDetails, setSelectedVendorDetails] = useState(null);
 
   useEffect(() => {
     fetchVendors();
   }, []);
+  const handleViewVendor = async (vendorId) => {
+    try {
+      const token = Cookies.get("token");
+      const response = await fetch(
+        `${process.env.REACT_APP_BASE_URL}/product/getProductByVendorId/${vendorId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const data = await response.json();
+      // Check if the response message is "No data found"
+      if (data.message === "No data found") {
+        toast.info("No data found");
+      } else {
+        // Show toast message with the response message
+        toast.error(data.message);
+      }
+    } catch (error) {
+      console.error("Error fetching vendor data:", error);
+      toast.error("Failed to fetch vendor data");
+    }
+  };
 
   const fetchVendors = async () => {
     try {
@@ -76,11 +105,11 @@ const VendorManagement = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    
+
     // Regular expressions for validation
     const nameRegex = /^[a-zA-Z\s]+$/; // Only alphabets and spaces allowed
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Email format validation
-    
+
     // Mobile number validation: Allow only numbers and ensure it has exactly 10 digits
     if (name === "mobileNo") {
       if (!/^\d{10}$/.test(value)) {
@@ -93,7 +122,7 @@ const VendorManagement = () => {
         setMobileError("");
       }
     }
-    
+
     // Validation for Staff Name
     if (name === "name") {
       if (!nameRegex.test(value)) {
@@ -101,13 +130,22 @@ const VendorManagement = () => {
         return; // Prevent further processing if validation fails
       }
     }
-    
-    
-    
+
     setFormData({ ...formData, [name]: value });
   };
-  
-  
+
+  const handleOpenEditDialog = (vendorId) => {
+    setEditingVendorId(vendorId);
+    const vendorToEdit = vendors.find((vendor) => vendor._id === vendorId);
+    setFormData({
+      name: vendorToEdit.name,
+      mobileNo: vendorToEdit.mobileNo,
+      email: vendorToEdit.email,
+      password: "",
+      address: vendorToEdit.address,
+    });
+    setOpenEditDialog(true);
+  };
   const handleCreateVendor = async () => {
     setLoading(true);
     try {
@@ -143,20 +181,23 @@ const VendorManagement = () => {
       // Other validation rules...
   
       const token = Cookies.get("token");
-      const response = await axios.post(
-        `${process.env.REACT_APP_BASE_URL}/admin/Vendor/new`, // Fixed URL path
-        formData,
+      const response = await fetch(
+        `${process.env.REACT_APP_BASE_URL}/admin/Vendor/new`,
         {
+          method: "POST",
           headers: {
             Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
           },
+          body: JSON.stringify(formData),
         }
       );
-      if (response.data.success) {
-        if (response.data.message === "Mobile number is already in use") {
-          toast.error(response.data.message);
+      const data = await response.json();
+      if (!data.success) {
+        if (data.message === "Mobile number is already in use") {
+          toast.error(data.message);
         } else {
-          toast.error(response.data.message);
+          toast.error(data.message);
         }
       } else {
         toast.success("Vendor created successfully");
@@ -206,18 +247,21 @@ const VendorManagement = () => {
       // Other validation rules...
   
       const token = Cookies.get("token");
-      const response = await axios.put(
-        `${process.env.REACT_APP_BASE_URL}/admin/vendor/updateDetails/${editingVendorId}`, // Fixed URL path
-        formData,
+      const response = await fetch(
+        `${process.env.REACT_APP_BASE_URL}/admin/vendor/updateDetails/${editingVendorId}`,
         {
+          method: "PUT",
           headers: {
             Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
           },
+          body: JSON.stringify(formData),
         }
       );
-      if (response.data.success) {
-        if (response.data.message === "Mobile number is already in use") {
-          toast.error(response.data.message);
+      const data = await response.json();
+      if (!data.success) {
+        if (data.message === "Mobile number is already in use") {
+          toast.error(data.message);
         } else {
           toast.error("Failed to update vendor");
         }
@@ -240,34 +284,20 @@ const VendorManagement = () => {
       setLoading(false);
     }
   };
-  
-  
-
-  const handleOpenEditDialog = (vendorId) => {
-    setEditingVendorId(vendorId);
-    const vendorToEdit = vendors.find((vendor) => vendor._id === vendorId);
-    setFormData({
-      name: vendorToEdit.name,
-      mobileNo: vendorToEdit.mobileNo,
-      email: vendorToEdit.email,
-      password: "",
-      address: vendorToEdit.address,
-    });
-    setOpenEditDialog(true);
-  };
-
   const handleDeleteVendor = async (vendorId) => {
     try {
       const token = Cookies.get("token");
-      const response = await axios.delete(
-        `${process.env.REACT_APP_BASE_URL}/admin/vendor/delete/${vendorId}`, // Fixed URL path
+      const response = await fetch(
+        `${process.env.REACT_APP_BASE_URL}/admin/vendor/delete/${vendorId}`,
         {
+          method: "DELETE",
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
-      if (response.data.success) {
+      const data = await response.json();
+      if (data.success) {
         toast.error("Failed to delete vendor");
       } else {
         toast.success("Vendor deleted successfully");
@@ -278,6 +308,8 @@ const VendorManagement = () => {
       toast.error("Failed to delete vendor");
     }
   };
+  
+  
 
   const handleOpenCreateDialog = () => {
     setOpenCreateDialog(true);
@@ -328,6 +360,9 @@ const VendorManagement = () => {
                     <TableCell>{vendor.email}</TableCell>
                     <TableCell>{vendor.address}</TableCell>
                     <TableCell>
+                      <IconButton onClick={() => handleViewVendor(vendor._id)}>
+                        <VisibilityIcon />
+                      </IconButton>
                       <IconButton
                         onClick={() => handleDeleteVendor(vendor._id)}
                       >
@@ -458,11 +493,7 @@ const VendorManagement = () => {
           <Button onClick={() => setOpenEditDialog(false)}>
             <CancelIcon /> Cancel
           </Button>
-          <Button
-            onClick={handleEditVendor}
-            color="primary"
-            disabled={loading}
-          >
+          <Button onClick={handleEditVendor} color="primary" disabled={loading}>
             {loading ? (
               <CircularProgress size={24} color="primary" />
             ) : (
@@ -490,6 +521,25 @@ const VendorManagement = () => {
           </Button>
         </DialogActions>
       </Dialog>
+      <Dialog open={viewDialogOpen} onClose={() => setViewDialogOpen(false)}>
+      <DialogTitle>Vendor Details</DialogTitle>
+      <DialogContent>
+        {selectedVendorDetails ? (
+          <div>
+            <Typography>Name: {selectedVendorDetails.name}</Typography>
+            <Typography>Mobile: {selectedVendorDetails.mobileNo}</Typography>
+            <Typography>Email: {selectedVendorDetails.email}</Typography>
+            <Typography>Address: {selectedVendorDetails.address}</Typography>
+            {/* Display other vendor details as needed */}
+          </div>
+        ) : (
+          <Typography>No vendor details available</Typography>
+        )}
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={() => setViewDialogOpen(false)}>Close</Button>
+      </DialogActions>
+    </Dialog>
       <ToastContainer />
     </Box>
   );
