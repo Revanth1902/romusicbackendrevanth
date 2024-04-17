@@ -110,10 +110,12 @@ const SubscriptionManagement = () => {
         );
         return;
       }
-
+  
       const token = Cookies.get("token");
       const formDataWithImage = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
+        // Check if the key is 'image' and value is not null or empty
+        if (key === 'image' && !value) return; // Skip appending if image is empty
         formDataWithImage.append(key, value);
       });
       const response = await axios.post(
@@ -147,6 +149,10 @@ const SubscriptionManagement = () => {
       setLoading(false);
     }
   };
+  
+
+  
+  
 
   const handleUpdateSubscription = async () => {
     setLoading(true);
@@ -166,26 +172,39 @@ const SubscriptionManagement = () => {
         );
         return;
       }
-
+  
       const token = Cookies.get("token");
-      const formDataWithImage = new FormData();
-      Object.entries(formData).forEach(([key, value]) => {
-        formDataWithImage.append(key, value);
-      });
+      const formDataWithoutImage = { ...formData }; // Create a copy of formData
+      delete formDataWithoutImage.image; // Remove image field from the copy
+  
       const response = await axios.put(
         `${process.env.REACT_APP_BASE_URL}/admin/subscription/updateSubsDetails/${updatingSubscriptionId}`,
-        formDataWithImage,
+        formDataWithoutImage,
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
           },
         }
       );
       if (response.data.success) {
-        toast.error("Failed to update subscription");
-      } else {
-        toast.success("Subscription updated successfully");
+        const imageUrl = response.data.data.image; // Get the updated image URL from the response
+        const formDataWithImage = new FormData();
+        if (formData.image) {
+          formDataWithImage.append("image", formData.image); // Add the image file to FormData
+          // Upload the image separately
+          await axios.put(
+            `${process.env.REACT_APP_BASE_URL}/admin/subscription/updateSubsImage/${updatingSubscriptionId}`,
+            formDataWithImage,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "multipart/form-data",
+              },
+            }
+          );
+        }
+  
+        toast.success(response.data.message || "Subscription updated successfully");
         setOpenEditDialog(false);
         fetchSubscriptions();
         setFormData({
@@ -195,6 +214,8 @@ const SubscriptionManagement = () => {
           timePeriod: "",
           image: null,
         });
+      } else {
+        toast.error(response.data.message || "Failed to update subscription");
       }
     } catch (error) {
       console.error("Error updating subscription:", error);
@@ -203,6 +224,9 @@ const SubscriptionManagement = () => {
       setLoading(false);
     }
   };
+  
+  
+  
 
   const handleOpenAddDialog = () => {
     setOpenAddDialog(true);

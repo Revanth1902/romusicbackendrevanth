@@ -14,10 +14,11 @@ const Coupons = () => {
   const [coupons, setCoupons] = useState([]);
   const [newCouponData, setNewCouponData] = useState({
     code: "",
-    amount: 0,
+    amount: "", // Change initial value to empty string
     description: "",
-    limit: 0,
+    limit: "", // Change initial value to empty string
   });
+
   const [editCouponData, setEditCouponData] = useState(null);
   const [order, setOrder] = useState("asc"); // State for sorting order
   const [orderBy, setOrderBy] = useState("code"); // State for sorting column
@@ -85,16 +86,19 @@ const Coupons = () => {
 
   const handleAddCoupon = async () => {
     try {
-      if (!Number.isInteger(newCouponData.amount) || !Number.isInteger(newCouponData.limit)) {
+      if (
+        !Number.isInteger(newCouponData.amount) ||
+        !Number.isInteger(newCouponData.limit)
+      ) {
         toast.error("Amount and Limit must be integers");
         return;
       }
-  
+
       if (newCouponData.amount < 0 || newCouponData.limit < 0) {
         toast.error("Amount and Limit cannot be negative");
         return;
       }
-  
+
       const token = Cookies.get("token");
       const response = await axios.post(
         `${process.env.REACT_APP_BASE_URL}/admin/coupon/new`,
@@ -108,31 +112,37 @@ const Coupons = () => {
       if (response.data.success) {
         setNewCouponData({
           code: "",
-          amount: 0,
+          amount: "",
           description: "",
-          limit: 0,
+          limit: "",
         });
         fetchAllCoupons();
         toast.success("Coupon added successfully");
+
+        // Close Add Coupon Modal
+        setShowAddCouponModal(false);
       }
     } catch (error) {
       console.error("Error adding coupon:", error);
       toast.error("Failed to add coupon");
     }
   };
-  
+
   const handleUpdateCoupon = async () => {
     try {
-      if (!Number.isInteger(editCouponData.amount) || !Number.isInteger(editCouponData.limit)) {
+      if (
+        !Number.isInteger(editCouponData.amount) ||
+        !Number.isInteger(editCouponData.limit)
+      ) {
         toast.error("Amount and Limit must be integers");
         return;
       }
-  
+
       if (editCouponData.amount < 0 || editCouponData.limit < 0) {
         toast.error("Amount and Limit cannot be negative");
         return;
       }
-  
+
       const token = Cookies.get("token");
       const response = await axios.put(
         `${process.env.REACT_APP_BASE_URL}/admin/updatecoupon/${editCouponData._id}`,
@@ -153,7 +163,6 @@ const Coupons = () => {
       toast.error("Failed to update coupon");
     }
   };
-  
 
   const handleSort = (property) => {
     const isAsc = orderBy === property && order === "asc";
@@ -304,9 +313,21 @@ const Coupons = () => {
                 }
                 min="0"
               />
-              <button onClick={() => setShowAddCouponModal(false)}>
+
+              <button
+                onClick={() => {
+                  setShowAddCouponModal(false);
+                  setNewCouponData({
+                    code: "",
+                    amount: "",
+                    description: "",
+                    limit: "",
+                  });
+                }}
+              >
                 Cancel
               </button>
+
               <button onClick={handleAddCoupon}>Submit</button>
             </div>
           </div>

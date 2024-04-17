@@ -1,7 +1,9 @@
-import * as React from "react";
+import React from "react";
 import { styled, useTheme } from "@mui/material/styles";
 import PeopleIcon from "@mui/icons-material/People";
 import Box from "@mui/material/Box";
+import LogoutIcon from "@mui/icons-material/Logout";
+import Cookies from "js-cookie";
 import MuiDrawer from "@mui/material/Drawer";
 import MuiAppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
@@ -34,6 +36,38 @@ import ListAltIcon from "@mui/icons-material/ListAlt";
 import CardMembershipIcon from "@mui/icons-material/CardMembership";
 import { useNavigate, useLocation } from "react-router-dom";
 import LocalGroceryStoreIcon from "@mui/icons-material/LocalGroceryStore";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogTitle from "@mui/material/DialogTitle";
+
+const AlertDialog = ({ open, setOpen, title, description, onConfirm }) => {
+  const handleClose = () => {
+    setOpen(false);
+  };
+
+  const handleConfirm = () => {
+    onConfirm();
+    setOpen(false);
+  };
+
+  return (
+    <Dialog open={open} onClose={handleClose}>
+      <DialogTitle>{title}</DialogTitle>
+      <DialogContent>
+        <DialogContentText>{description}</DialogContentText>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleClose}>Cancel</Button>
+        <Button onClick={handleConfirm} autoFocus>
+          Confirm
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
+
 const drawerWidth = 240;
 
 const openedMixin = (theme) => ({
@@ -106,6 +140,7 @@ export default function SideBar() {
   const [open, setOpen] = React.useState(true);
   const location = useLocation();
   const navigate = useNavigate();
+  const [showLogoutDialog, setShowLogoutDialog] = React.useState(false);
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -113,6 +148,13 @@ export default function SideBar() {
 
   const handleDrawerClose = () => {
     setOpen(false);
+  };
+  const handleLogout = () => {
+    // Delete the token from cookies
+    Cookies.remove("token");
+
+    // Close the logout dialog
+    setShowLogoutDialog(false);
   };
 
   return (
@@ -212,6 +254,19 @@ export default function SideBar() {
                 </span>
                 <ArrowDropDownIcon sx={{ color: "black" }} />
               </Button>
+              <IconButton
+                onClick={() => setShowLogoutDialog(true)}
+                color="inherit"
+              >
+                <LogoutIcon />
+              </IconButton>
+              <AlertDialog
+                open={showLogoutDialog}
+                setOpen={setShowLogoutDialog}
+                title="Logout"
+                description="Are you sure you want to logout?"
+                onConfirm={handleLogout}
+              />
             </Box>
           </Typography>
         </Toolbar>

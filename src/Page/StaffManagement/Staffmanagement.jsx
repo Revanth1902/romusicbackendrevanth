@@ -115,11 +115,11 @@ const StaffManagement = () => {
       setOpenDeleteDialog(false);
     }
   };
-  
+
   const handleAddStaff = async () => {
     try {
       // Existing code...
-  
+
       const token = Cookies.get("token");
       const response = await fetch(
         `${process.env.REACT_APP_BASE_URL}/admin/staff/new`,
@@ -153,11 +153,11 @@ const StaffManagement = () => {
       setSubmitting(false);
     }
   };
-  
+
   const handleEditSave = async () => {
     try {
       // Existing code...
-  
+
       const token = Cookies.get("token");
       const response = await fetch(
         `${process.env.REACT_APP_BASE_URL}/admin/staff/updateDetails/${selectedStaff._id}`,
@@ -185,8 +185,6 @@ const StaffManagement = () => {
       setSubmitting(false);
     }
   };
-  
-
 
   const validateEmail = (email) => {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -454,22 +452,46 @@ const StaffManagement = () => {
               name="firstName"
               label="First Name"
               value={addStaffData.firstName}
-              onChange={(e) =>
-                setAddStaffData({ ...addStaffData, firstName: e.target.value })
-              }
+              onChange={(e) => {
+                const newValue = e.target.value;
+                if (/^[A-Za-z\s]*$/.test(newValue) || newValue === "") {
+                  setAddStaffData({
+                    ...addStaffData,
+                    firstName: newValue,
+                  });
+                }
+              }}
               fullWidth
               margin="normal"
+              error={!/^[A-Za-z\s]*$/.test(addStaffData.firstName)}
+              helperText={
+                !/^[A-Za-z\s]*$/.test(addStaffData.firstName) &&
+                "First Name should only contain alphabets"
+              }
             />
+
             <TextField
               name="lastName"
               label="Last Name"
               value={addStaffData.lastName}
-              onChange={(e) =>
-                setAddStaffData({ ...addStaffData, lastName: e.target.value })
-              }
+              onChange={(e) => {
+                const newValue = e.target.value;
+                if (/^[A-Za-z\s]*$/.test(newValue) || newValue === "") {
+                  setAddStaffData({
+                    ...addStaffData,
+                    lastName: newValue,
+                  });
+                }
+              }}
               fullWidth
               margin="normal"
+              error={!/^[A-Za-z\s]*$/.test(addStaffData.lastName)}
+              helperText={
+                !/^[A-Za-z\s]*$/.test(addStaffData.lastName) &&
+                "Last Name should only contain alphabets"
+              }
             />
+
             <TextField
               name="email"
               label="Email"
@@ -496,7 +518,11 @@ const StaffManagement = () => {
             <Button
               onClick={handleAddStaff}
               color="primary"
-              disabled={submitting} // Disable the button while submitting
+              disabled={
+                submitting ||
+                !/^[A-Za-z]*$/.test(addStaffData.firstName) ||
+                !/^[A-Za-z]+(?: [A-Za-z]+)?$/.test(addStaffData.lastName)
+              }
             >
               {submitting ? <CircularProgress size={24} /> : "Add"}
             </Button>
@@ -512,28 +538,46 @@ const StaffManagement = () => {
                   name="firstName"
                   label="First Name"
                   value={editStaffData.firstName}
-                  onChange={(e) =>
-                    setEditStaffData({
-                      ...editStaffData,
-                      firstName: e.target.value,
-                    })
-                  }
+                  onChange={(e) => {
+                    const newValue = e.target.value;
+                    if (/^[A-Za-z\s]*$/.test(newValue) || newValue === "") {
+                      setEditStaffData({
+                        ...editStaffData,
+                        firstName: newValue,
+                      });
+                    }
+                  }}
                   fullWidth
                   margin="normal"
+                  error={!/^[A-Za-z\s]*$/.test(editStaffData.firstName)}
+                  helperText={
+                    !/^[A-Za-z\s]*$/.test(editStaffData.firstName) &&
+                    "First Name should only contain alphabets"
+                  }
                 />
+
                 <TextField
                   name="lastName"
                   label="Last Name"
                   value={editStaffData.lastName}
-                  onChange={(e) =>
-                    setEditStaffData({
-                      ...editStaffData,
-                      lastName: e.target.value,
-                    })
-                  }
+                  onChange={(e) => {
+                    const newValue = e.target.value;
+                    if (/^[A-Za-z\s]*$/.test(newValue) || newValue === "") {
+                      setEditStaffData({
+                        ...editStaffData,
+                        lastName: newValue,
+                      });
+                    }
+                  }}
                   fullWidth
                   margin="normal"
+                  error={!/^[A-Za-z\s]*$/.test(editStaffData.lastName)}
+                  helperText={
+                    !/^[A-Za-z\s]*$/.test(editStaffData.lastName) &&
+                    "Last Name should only contain alphabets"
+                  }
                 />
+
                 <TextField
                   name="email"
                   label="Email"
@@ -578,7 +622,11 @@ const StaffManagement = () => {
             <Button
               onClick={handleEditSave}
               color="primary"
-              disabled={submitting}
+              disabled={
+                submitting ||
+                !/^[A-Za-z]*$/.test(editStaffData.firstName) ||
+                !/^[A-Za-z]+(?: [A-Za-z]+)?$/.test(editStaffData.lastName)
+              }
             >
               {submitting ? <CircularProgress size={24} /> : "Save"}
             </Button>

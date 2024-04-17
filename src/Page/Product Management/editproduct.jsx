@@ -1,12 +1,23 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useParams } from "react-router-dom";
+import {
+  FormControl,
+  FormControlLabel,
+  Radio,
+  RadioGroup,
+} from "@mui/material";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Cookies from "js-cookie";
 import SideBar from "../../Component/SideBar";
 import "./editproduct.css";
 import { useNavigate } from "react-router-dom";
+import Switch from "@mui/material/Switch";
+import ToggleButton from "@mui/material/ToggleButton";
+import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import CancelIcon from "@mui/icons-material/Cancel";
 
 const EditProduct = () => {
   const navigate = useNavigate();
@@ -23,10 +34,14 @@ const EditProduct = () => {
     subCategory: "",
     warrantyPeriod: "",
     productImages: [], // Added productImages array
+    featured: false, // Added featured property
+    bestSeller: false, // Added bestSeller property
+    isVerified: "false", // Added isVerified property
   });
   const [brands, setBrands] = useState([]);
   const [categories, setCategories] = useState([]);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0); // Added state to track selected image index
+  const [isVerified, setIsVerified] = useState(product.isVerified);
 
   useEffect(() => {
     fetchProduct();
@@ -99,6 +114,10 @@ const EditProduct = () => {
       toast.error("Failed to fetch categories");
     }
   };
+  const handleVerificationChange = (event) => {
+    setIsVerified(event.target.value);
+  };
+  
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -136,6 +155,7 @@ const EditProduct = () => {
       formData.append("brand", product.brand);
       formData.append("subCategory", product.subCategory);
       formData.append("warrantyPeriod", product.warrantyPeriod);
+      formData.append("isVerified", isVerified); // Include isVerified
       if (product.image) {
         formData.append("productImages", product.image);
       }
@@ -253,6 +273,57 @@ const EditProduct = () => {
             <option value="36 months">36 months</option>
             <option value="48 months">48 months</option>
           </select>
+
+          <label>Featured:</label>
+          <Switch
+            checked={product.featured}
+            onChange={(e) =>
+              setProduct({ ...product, featured: e.target.checked })
+            }
+            color="primary"
+          />
+          <label>Best Seller:</label>
+          <Switch
+            checked={product.bestSeller}
+            onChange={(e) =>
+              setProduct({ ...product, bestSeller: e.target.checked })
+            }
+            color="primary"
+          />
+
+          <label>Is Verified:</label>
+          <FormControl component="fieldset">
+            <RadioGroup
+              aria-label="verification"
+              name="verification"
+              value={isVerified}
+              onChange={handleVerificationChange}
+              row
+            >
+              <FormControlLabel
+                value="true"
+                control={<Radio />}
+                label={
+                  <CheckCircleIcon
+                    style={{
+                      color: isVerified === "true" ? "green" : "inherit",
+                    }}
+                  />
+                }
+              />
+              <FormControlLabel
+                value="false"
+                control={<Radio />}
+                label={
+                  <CancelIcon
+                    style={{
+                      color: isVerified === "false" ? "red" : "inherit",
+                    }}
+                  />
+                }
+              />
+            </RadioGroup>
+          </FormControl>
 
           <div>
             {product.productImages.length > 0 ? (

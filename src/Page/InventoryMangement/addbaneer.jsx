@@ -1,181 +1,286 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
-import "./addbanner.css";
-import SideBar from "../../Component/SideBar";
+import Button from "@mui/material/Button";
+import CircularProgress from "@mui/material/CircularProgress";
+import CloseIcon from "@mui/icons-material/Close";
 import Cookies from "js-cookie";
+import SideBar from "../../Component/SideBar";
 import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import { useNavigate } from "react-router-dom";
 
 const BannerComponent = () => {
-  const navigate = useNavigate();
-  const [categoryOptions, setCategoryOptions] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [selectedSubCategory, setSelectedSubCategory] = useState("");
-  const [previewImages, setPreviewImages] = useState([]);
-  const [submitting, setSubmitting] = useState(false); // State to track form submission
+  const [loading, setLoading] = useState(false);
+  const [filesToUpload, setFilesToUpload] = useState([]);
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [selectedOption, setSelectedOption] = useState("");
+  const [allCategories, setAllCategories] = useState([]);
 
   useEffect(() => {
-    fetchCategoryOptions();
+    // Fetch categories here
+    fetchCategories();
   }, []);
 
-  const fetchCategoryOptions = async () => {
+  const fetchCategories = async () => {
     try {
-      const token = Cookies.get("token");
-      const response = await axios.get(
-        `${process.env.REACT_APP_BASE_URL}/admin/getAllCategories`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      // Fetch categories from your API
+      const res = await fetch(
+        `${process.env.REACT_APP_BASE_URL}/admin/getAllCategories`
       );
-      if (response.data.success) {
-        setCategoryOptions(response.data.categories);
+      const data = await res.json();
+      if (res.ok) {
+        setAllCategories(data.categories);
       } else {
-        setCategoryOptions([]);
+        toast.error(data.message || "Failed to fetch categories");
       }
     } catch (error) {
-      console.error("Error fetching category options:", error);
+      toast.error("An error occurred while fetching categories");
     }
   };
 
-  const handleCategoryChange = (e) => {
-    setSelectedCategory(e.target.value);
-  };
-
-  const handleSubCategoryChange = (e) => {
-    setSelectedSubCategory(e.target.value);
-  };
-
-  const handleImageChange = (e) => {
-    const files = e.target.files;
-    if (files) {
-      const newImages = [...previewImages];
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        const reader = new FileReader();
-        reader.onload = () => {
-          newImages.push({ file, src: reader.result });
-          setPreviewImages(newImages);
-        };
-        reader.readAsDataURL(file);
-      }
-    }
-  };
-
-  const handleImageRemove = (index) => {
-    const updatedImages = [...previewImages];
-    updatedImages.splice(index, 1);
-    setPreviewImages(updatedImages);
+  const handleSelectChange = (event) => {
+    setSelectedOption(event.target.value);
   };
 
   const handleSubmit = async () => {
+    if (
+      filesToUpload.length < 1 ||
+      selectedCategories.length < 1 ||
+      !selectedOption
+    ) {
+      toast.error("Please select at least 1 image, category, and banner type");
+      return;
+    }
+  
+    setLoading(true);
+    const formData = new FormData();
+  
+    filesToUpload.forEach((file) => {
+      formData.append("bannerImage", file);
+    });
+  
+    selectedCategories.forEach((category) => {
+      formData.append("categories", category);
+    });
+  
+    formData.append("subCategory", selectedOption);
+  
     try {
-      if (!selectedCategory || !selectedSubCategory || previewImages.length === 0 || submitting) {
-        return; // Do nothing if submitting or missing required data
-      }
-
-      setSubmitting(true); // Set submitting to true
-
-      const token = Cookies.get("token");
-      const formData = new FormData();
-      formData.append("categories", selectedCategory);
-      formData.append("subCategory", selectedSubCategory);
-      previewImages.forEach((image) => {
-        formData.append("bannerImage", image.file);
-      });
-      const response = await axios.post(
+      const token = Cookies.get("token"); // Get the token from cookies
+      const res = await fetch(
         `${process.env.REACT_APP_BASE_URL}/admin/banner/new`,
-        formData,
         {
+          method: "POST",
+          body: formData,
           headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`, // Include the token in the request headers
           },
         }
       );
-
-      if (response.data.success) {
-        toast.success("Banner created successfully");
-        navigate("/inventorymanagement  ");
-        setPreviewImages([]);
-        setSelectedCategory("");
-        setSelectedSubCategory("");
+  
+      const data = await res.json();
+      setLoading(false);
+  
+      if (res.ok) {
+        toast.success("Banner added successfully");
+        // Navigate to "/inventorymanagement" after successful banner creation
+        window.location.href = "/inventorymanagement";
       } else {
-        toast.error("Failed to create banner");
+        toast.error(data.message || "Failed to add banner");
       }
     } catch (error) {
-      console.error("Error creating banner:", error);
-      toast.error("Failed to create banner");
-    } finally {
-      setSubmitting(false); // Reset submitting state regardless of success or failure
+      setLoading(false);
+      toast.error("An error occurred while adding the banner");
     }
   };
+  
+  
+
+  const handleImageChange = (e) => {
+    const files = e.target.files;
+    const fileList = Array.from(files);
+    setFilesToUpload((prevFiles) => [...prevFiles, ...fileList]);
+    // Clear selected categories when changing the image
+    setSelectedCategories([]);
+  };
+  
+
+  const handleRemoveImage = (index) => {
+    setFilesToUpload((prev) => prev.filter((_, i) => i !== index));
+    setSelectedCategories((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleCategoryChange = (event, index) => {
+    const category = event.target.value;
+    setSelectedCategories((prev) => {
+      const updatedCategories = [...prev];
+      updatedCategories[index] = category;
+      return updatedCategories;
+    });
+  };
+
+  const renderImages = () => {
+    const maxImages = 6;
+    const displayedFiles = filesToUpload.slice(0, maxImages); // Limit to maximum 6 images
+    const rows = [];
+  
+    for (let i = 0; i < displayedFiles.length; i += 2) {
+      rows.push(
+        <div key={i} style={{ display: "flex", marginBottom: "20px" }}>
+          {displayedFiles[i] && (
+            <div style={{ marginRight: "20px" }}>
+              <div style={{ marginBottom: "10px" }}>
+                <Button onClick={() => handleRemoveImage(i)}>
+                  <CloseIcon />
+                </Button>
+                <img
+                  className="h-40 object-cover"
+                  style={{ width: "150px", height: "150px", marginRight: "10px" }}
+                  src={URL.createObjectURL(displayedFiles[i])}
+                  alt={`Image ${i}`}
+                />
+              </div>
+              <div>
+                <label htmlFor={`category${i}`}>
+                  Select Category for Image {i + 1}:
+                </label>
+                <select
+                  id={`category${i}`}
+                  value={selectedCategories[i] || ""}
+                  onChange={(e) => handleCategoryChange(e, i)}
+                  style={{
+                    marginLeft: "10px",
+                    padding: "5px",
+                    borderRadius: "5px",
+                  }}
+                >
+                  <option value="" disabled>
+                    Select Category
+                  </option>
+                  {allCategories.map((category) => (
+                    <option key={category._id} value={category.categoryName}>
+                      {category.categoryName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          )}
+          {displayedFiles[i + 1] && (
+            <div>
+              <div style={{ marginBottom: "10px" }}>
+                <Button onClick={() => handleRemoveImage(i + 1)}>
+                  <CloseIcon />
+                </Button>
+                <img
+                  className="h-40 object-cover"
+                  style={{ width: "150px", height: "150px", marginRight: "10px" }}
+                  src={URL.createObjectURL(displayedFiles[i + 1])}
+                  alt={`Image ${i + 1}`}
+                />
+              </div>
+              <div>
+                <label htmlFor={`category${i + 1}`}>
+                  Select Category for Image {i + 2}:
+                </label>
+                <select
+                  id={`category${i + 1}`}
+                  value={selectedCategories[i + 1] || ""}
+                  onChange={(e) => handleCategoryChange(e, i + 1)}
+                  style={{
+                    marginLeft: "10px",
+                    padding: "5px",
+                    borderRadius: "5px",
+                  }}
+                >
+                  <option value="" disabled>
+                    Select Category
+                  </option>
+                  {allCategories.map((category) => (
+                    <option key={category._id} value={category.categoryName}>
+                      {category.categoryName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+  
+    return <>{rows}</>;
+  };
+  
 
   return (
-    <div>
+    <>
       <SideBar />
-      <div className="banner-container">
-        <h2>Create New Banner</h2>
-        <div>
-          <label htmlFor="category">Category:</label>
-          <select
-            id="category"
-            value={selectedCategory}
-            onChange={handleCategoryChange}
-          >
-            <option value="">Select Category</option>
-            {categoryOptions.map((category) => (
-              <option key={category._id} value={category.categoryName}>
-                {category.categoryName}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="subCategory">Subcategory:</label>
+      <div
+        className="flex justify-center items-center h-full"
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          margin:"9%"
+        }}
+      >
+        <div className="text-center">
+          <label htmlFor="imageInput" className="custom-file-upload">
+            Choose Images
+          </label>
           <input
-            type="text"
-            id="subCategory"
-            value={selectedSubCategory}
-            onChange={handleSubCategoryChange}
-          />
-        </div>
-        <div>
-          <label htmlFor="image">Banner Image:</label>
-          <input
+            id="imageInput"
             type="file"
-            id="image"
-            accept="image/*"
             onChange={handleImageChange}
-            multiple // Allow multiple file selection
+            multiple
+            className="hidden"
           />
-        </div>
-        {previewImages.length > 0 && (
-          <div className="theimagepreview">
-            <h3>Preview:</h3>
-            {previewImages.map((image, index) => (
-              <div
-                key={index}
-                style={{ marginBottom: "10px" }}
-                className="theimagepreview2"
-              >
-                <img src={image.src} alt={`Banner Preview ${index + 1}`} />
-                <button onClick={() => handleImageRemove(index)}>Remove</button>
-              </div>
-            ))}
+          <div>{renderImages()}</div>
+          <div
+            style={{ display: "flex", alignItems: "center", marginTop: "20px" }}
+          >
+            <label htmlFor="bannerType" style={{ marginRight: "10px" }}>
+              Select Banner Type:
+            </label>
+            <select
+              id="bannerType"
+              value={selectedOption}
+              onChange={handleSelectChange}
+              style={{
+                padding: "8px 12px",
+                borderRadius: "5px",
+                border: "1px solid #ccc",
+                backgroundColor: "#fff",
+                boxShadow: "0 2px 5px rgba(0, 0, 0, 0.1)",
+                marginLeft: "10px",
+              }}
+            >
+              <option value="">Select Banner Type</option>
+              <option value="mainbanner">Main Banner</option>
+              <option value="productbanner">Product Banner</option>
+            </select>
           </div>
-        )}
-
-        {submitting ? (
-          <div className="loader">Submitting...</div> // Show loader while submitting
-        ) : (
-          <button onClick={handleSubmit}>Submit</button> // Show submit button if not submitting
-        )}
+          <Button
+            onClick={handleSubmit}
+            disabled={loading}
+            style={{
+              marginTop: "20px",
+              backgroundColor: "#f58634",
+              color: "#ffffff", // Set text color to white for better contrast
+              border: "none", // Remove button border
+              padding: "5px 20px", // Add padding for better appearance
+              borderRadius: "5px", // Add border radius for rounded corners
+              cursor: "pointer", // Change cursor to pointer on hover
+            }}
+          >
+            {loading ? (
+              <CircularProgress size={24} style={{ color: "#ffffff" }} />
+            ) : (
+              "Submit"
+            )}
+          </Button>
+        </div>
+        <ToastContainer/>
       </div>
-      <ToastContainer />
-    </div>
+    </>
   );
 };
 

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+import { useNavigate } from "react-router-dom";
+import CloseIcon from "@mui/icons-material/Close";
+
 import {
   Button,
   TextField,
@@ -20,7 +22,6 @@ import {
   Paper,
   IconButton,
   DialogContentText,
-
 } from "@mui/material";
 import Cookies from "js-cookie";
 import { ToastContainer, toast } from "react-toastify";
@@ -32,6 +33,10 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 
 const VendorManagement = () => {
+  const [openViewDialog, setOpenViewDialog] = useState(false);
+  const [selectedVendor, setSelectedVendor] = useState(null);
+
+  const [selectedProductId, setSelectedProductId] = useState(null);
   const [vendors, setVendors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
@@ -54,11 +59,12 @@ const VendorManagement = () => {
   useEffect(() => {
     fetchVendors();
   }, []);
-  const handleViewVendor = async (vendorId) => {
+
+  const fetchVendors = async () => {
     try {
       const token = Cookies.get("token");
       const response = await fetch(
-        `${process.env.REACT_APP_BASE_URL}/product/getProductByVendorId/${vendorId}`,
+        `${process.env.REACT_APP_BASE_URL}/vendor/get`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -66,34 +72,10 @@ const VendorManagement = () => {
         }
       );
       const data = await response.json();
-      // Check if the response message is "No data found"
-      if (data.message === "No data found") {
-        toast.info("No data found");
-      } else {
-        // Show toast message with the response message
+      if (!response.ok) {
         toast.error(data.message);
-      }
-    } catch (error) {
-      console.error("Error fetching vendor data:", error);
-      toast.error("Failed to fetch vendor data");
-    }
-  };
-
-  const fetchVendors = async () => {
-    try {
-      const token = Cookies.get("token");
-      const response = await axios.get(
-        `${process.env.REACT_APP_BASE_URL}/vendor/get`, // Fixed URL path
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      if (response.data.success) {
-        toast.error(response.data.message);
       } else {
-        setVendors(response.data.data);
+        setVendors(data.data);
       }
     } catch (error) {
       console.error("Error fetching vendors:", error);
@@ -106,28 +88,23 @@ const VendorManagement = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
-    // Regular expressions for validation
-    const nameRegex = /^[a-zA-Z\s]+$/; // Only alphabets and spaces allowed
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Email format validation
+    const nameRegex = /^[a-zA-Z\s]+$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    // Mobile number validation: Allow only numbers and ensure it has exactly 10 digits
     if (name === "mobileNo") {
       if (!/^\d{10}$/.test(value)) {
-        // Set the error message if the mobile number input doesn't meet the criteria
         setMobileError(
           "Mobile Number should be numeric and have exactly 10 digits"
         );
       } else {
-        // Clear the error message if the input is valid
         setMobileError("");
       }
     }
 
-    // Validation for Staff Name
     if (name === "name") {
       if (!nameRegex.test(value)) {
         toast.error("Staff Name should only contain alphabets and spaces");
-        return; // Prevent further processing if validation fails
+        return;
       }
     }
 
@@ -146,18 +123,17 @@ const VendorManagement = () => {
     });
     setOpenEditDialog(true);
   };
+
   const handleCreateVendor = async () => {
     setLoading(true);
     try {
-      // Mobile number validation: Allow only numbers and ensure it has exactly 10 digits
       if (!/^\d{10}$/.test(formData.mobileNo)) {
         toast.error(
           "Mobile Number should be numeric and have exactly 10 digits"
         );
         return;
       }
-  
-      // Validation for other fields
+
       if (
         !formData.name ||
         !formData.mobileNo ||
@@ -169,17 +145,13 @@ const VendorManagement = () => {
         );
         return;
       }
-  
-      // Regular expression for email validation
+
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      // Check if email is in proper format
       if (!emailRegex.test(formData.email)) {
         toast.error("Invalid email format");
         return;
       }
-  
-      // Other validation rules...
-  
+
       const token = Cookies.get("token");
       const response = await fetch(
         `${process.env.REACT_APP_BASE_URL}/admin/Vendor/new`,
@@ -193,12 +165,8 @@ const VendorManagement = () => {
         }
       );
       const data = await response.json();
-      if (!data.success) {
-        if (data.message === "Mobile number is already in use") {
-          toast.error(data.message);
-        } else {
-          toast.error(data.message);
-        }
+      if (!response.ok) {
+        toast.error(data.message);
       } else {
         toast.success("Vendor created successfully");
         setOpenCreateDialog(false);
@@ -218,34 +186,53 @@ const VendorManagement = () => {
       setLoading(false);
     }
   };
-  
+
+  const handleViewVendor = async (vendorId) => {
+    try {
+      const token = Cookies.get("token");
+      const response = await fetch(
+        `${process.env.REACT_APP_BASE_URL}/product/getProductByVendorId/${vendorId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const data = await response.json();
+      if (response.ok) {
+        setSelectedVendor(vendors.find((vendor) => vendor._id === vendorId)); // Set selectedVendor
+        setViewingVendorData(data.data || []); // Set the vendor's product details, handling empty data
+        setOpenViewDialog(true); // Open the dialog
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      console.error("Error fetching vendor data:", error);
+      toast.error("Failed to fetch vendor data");
+    }
+  };
+
   const handleEditVendor = async () => {
     setLoading(true);
     try {
-      // Mobile number validation: Allow only numbers and ensure it has exactly 10 digits
       if (!/^\d{10}$/.test(formData.mobileNo)) {
         toast.error(
           "Mobile Number should be numeric and have exactly 10 digits"
         );
         return;
       }
-  
-      // Validation for other fields
+
       if (!formData.name || !formData.mobileNo || !formData.email) {
         toast.error("Name, Mobile Number, and Email are required fields");
         return;
       }
-  
-      // Regular expression for email validation
+
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      // Check if email is in proper format
       if (!emailRegex.test(formData.email)) {
         toast.error("Invalid email format");
         return;
       }
-  
-      // Other validation rules...
-  
+
       const token = Cookies.get("token");
       const response = await fetch(
         `${process.env.REACT_APP_BASE_URL}/admin/vendor/updateDetails/${editingVendorId}`,
@@ -259,12 +246,8 @@ const VendorManagement = () => {
         }
       );
       const data = await response.json();
-      if (!data.success) {
-        if (data.message === "Mobile number is already in use") {
-          toast.error(data.message);
-        } else {
-          toast.error("Failed to update vendor");
-        }
+      if (!response.ok) {
+        toast.error(data.message);
       } else {
         toast.success("Vendor updated successfully");
         setOpenEditDialog(false);
@@ -284,6 +267,7 @@ const VendorManagement = () => {
       setLoading(false);
     }
   };
+
   const handleDeleteVendor = async (vendorId) => {
     try {
       const token = Cookies.get("token");
@@ -297,8 +281,8 @@ const VendorManagement = () => {
         }
       );
       const data = await response.json();
-      if (data.success) {
-        toast.error("Failed to delete vendor");
+      if (!response.ok) {
+        toast.error(data.message);
       } else {
         toast.success("Vendor deleted successfully");
         fetchVendors();
@@ -308,25 +292,17 @@ const VendorManagement = () => {
       toast.error("Failed to delete vendor");
     }
   };
-  
-  
-
-  const handleOpenCreateDialog = () => {
-    setOpenCreateDialog(true);
-    setFormData({
-      name: "",
-      mobileNo: "",
-      email: "",
-      password: "",
-      address: "",
-    });
-  };
 
   const handleConfirmDelete = () => {
     handleDeleteVendor(selectedVendorId);
     setDeleteDialogOpen(false);
   };
 
+  const navigate = useNavigate();
+
+  const handleEditProduct = (productId) => {
+    navigate(`/editproduct/${productId}`);
+  };
   return (
     <Box sx={{ display: "flex" }}>
       <SideBar />
@@ -334,7 +310,7 @@ const VendorManagement = () => {
         <Button
           sx={{ background: "orange" }}
           variant="contained"
-          onClick={handleOpenCreateDialog}
+          onClick={() => setOpenCreateDialog(true)}
         >
           Create Vendor
         </Button>
@@ -364,7 +340,10 @@ const VendorManagement = () => {
                         <VisibilityIcon />
                       </IconButton>
                       <IconButton
-                        onClick={() => handleDeleteVendor(vendor._id)}
+                        onClick={() => {
+                          setSelectedVendorId(vendor._id);
+                          setDeleteDialogOpen(true);
+                        }}
                       >
                         <DeleteIcon />
                       </IconButton>
@@ -521,25 +500,91 @@ const VendorManagement = () => {
           </Button>
         </DialogActions>
       </Dialog>
-      <Dialog open={viewDialogOpen} onClose={() => setViewDialogOpen(false)}>
-      <DialogTitle>Vendor Details</DialogTitle>
-      <DialogContent>
-        {selectedVendorDetails ? (
-          <div>
-            <Typography>Name: {selectedVendorDetails.name}</Typography>
-            <Typography>Mobile: {selectedVendorDetails.mobileNo}</Typography>
-            <Typography>Email: {selectedVendorDetails.email}</Typography>
-            <Typography>Address: {selectedVendorDetails.address}</Typography>
-            {/* Display other vendor details as needed */}
-          </div>
-        ) : (
-          <Typography>No vendor details available</Typography>
-        )}
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={() => setViewDialogOpen(false)}>Close</Button>
-      </DialogActions>
-    </Dialog>
+      <Dialog open={openViewDialog} onClose={() => setOpenViewDialog(false)}>
+        <DialogTitle>Vendor Details</DialogTitle>
+        <DialogContent>
+          {selectedVendor && (
+            <Box>
+              <Typography variant="subtitle1" sx={{ mb: 2 }}>
+                Name:{" "}
+                {selectedVendor.name.charAt(0).toUpperCase() +
+                  selectedVendor.name.slice(1)}
+              </Typography>
+              <Typography variant="subtitle1" sx={{ mb: 2 }}>
+                Mobile: {selectedVendor.mobileNo}
+              </Typography>
+              <Typography variant="subtitle1" sx={{ mb: 2 }}>
+                Email: {selectedVendor.email}
+              </Typography>
+              <Typography variant="subtitle1" sx={{ mb: 2 }}>
+                Address: {selectedVendor.address}
+              </Typography>
+
+              {/* Check if viewingVendorData exists and has length */}
+              {viewingVendorData && viewingVendorData.length > 0 ? (
+                <div>
+                  <Typography variant="h6" sx={{ mb: 2 }}>
+                    Products:
+                  </Typography>
+                  <TableContainer component={Paper}>
+                    <Table>
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Name</TableCell>
+                          <TableCell>Price</TableCell>
+                          <TableCell>Stock</TableCell>
+                          <TableCell>MRP</TableCell>
+                          <TableCell>Is Verified</TableCell>
+                          <TableCell>Action</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {viewingVendorData.map((product) => (
+                          <TableRow key={product._id}>
+                            <TableCell>
+                              {product.name.charAt(0).toUpperCase() +
+                                product.name.slice(1)}
+                            </TableCell>
+
+                            <TableCell>${product.price}</TableCell>
+                            <TableCell>{product.stock}</TableCell>
+                            <TableCell>${product.mrp}</TableCell>
+                            <TableCell>
+                              {product.isVerified === "true" ? (
+                                <CheckCircleIcon style={{ color: "green" }} />
+                              ) : (
+                                <CancelIcon style={{ color: "red" }} />
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              <IconButton
+                                onClick={() => handleEditProduct(product._id)}
+                              >
+                                <EditIcon />
+                              </IconButton>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </div>
+              ) : (
+                <Typography variant="subtitle1" align="center">
+                  No products added by this vendor
+                </Typography>
+              )}
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenViewDialog(false)}>
+            <CloseIcon />
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <ToastContainer />
     </Box>
   );
