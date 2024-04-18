@@ -152,9 +152,10 @@ export default function SideBar() {
   const handleLogout = () => {
     // Delete the token from cookies
     Cookies.remove("token");
-
+   
     // Close the logout dialog
     setShowLogoutDialog(false);
+    navigate("/loginadmin")
   };
 
   return (

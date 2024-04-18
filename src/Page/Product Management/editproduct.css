@@ -7,59 +7,84 @@
   width: calc(100% - 250px); /* Adjusted width to accommodate sidebar */
 }
 
-.edit-product-content {
-  width: 70%; /* Adjusted width for the main content */
-}
-
 .edit-product-container h2 {
-  text-align: center;
+  margin-bottom: 20px;
 }
 
 .edit-product-container form {
-  display: grid;
-  gap: 10px;
+  width: 70%;
 }
 
 .edit-product-container label {
-  font-weight: bold;
+  margin-top: 10px;
+  display: block;
 }
 
 .edit-product-container input,
 .edit-product-container select,
 .edit-product-container textarea {
-  padding: 10px;
+  width: 100%;
+  margin-top: 5px;
+  padding: 8px;
   border: 1px solid #ccc;
-  border-radius: 5px;
+  border-radius: 4px;
+  box-sizing: border-box;
 }
 
-.edit-product-container button {
-  padding: 10px 20px;
+.edit-product-container select {
+  height: 38px; /* adjust height as needed */
+}
+
+.edit-product-container textarea {
+  resize: vertical;
+}
+
+.edit-product-container .image-item {
+  margin-top: 20px;
+}
+
+.edit-product-container .image-item label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.edit-product-container .product-image {
+  margin-top: 10px;
+}
+
+.edit-product-container .image-input {
+  margin-top: 10px;
+}
+.edit-product-container .image-item {
+  display: inline-block;
+  width: calc(50% - 10px);
+  vertical-align: top;
+  margin-right: 10px;
+  position: relative;
+}
+
+.edit-product-container .image-item:nth-child(2n) {
+  margin-right: 0;
+}
+
+.edit-product-container .image-item:nth-child(n+3) {
+  margin-top: 20px;
+}
+
+.edit-product-container .change-image-button {
+  display: flex;
+  position: relative;
+ margin-top: 2%;
+
+ 
   background-color: #007bff;
   color: #fff;
   border: none;
-  border-radius: 5px;
+  border-radius: 4px;
   cursor: pointer;
-  justify-self: center;
 }
 
-.edit-product-container button:hover {
+.edit-product-container .change-image-button:hover {
   background-color: #0056b3;
 }
 
-.image-item {
-  display: grid;
-  gap: 10px;
-}
-
-.product-image {
-  width: 500px;
-  height: 400px;
-  border-radius: 5px;
-}
-
-.sidebar {
-  width: 250px;
-  background-color: #f0f0f0;
-  padding: 20px;
-  border-right: 1px solid #ccc;
-}

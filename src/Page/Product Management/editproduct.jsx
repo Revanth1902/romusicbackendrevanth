@@ -1,23 +1,12 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useParams } from "react-router-dom";
-import {
-  FormControl,
-  FormControlLabel,
-  Radio,
-  RadioGroup,
-} from "@mui/material";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Cookies from "js-cookie";
 import SideBar from "../../Component/SideBar";
 import "./editproduct.css";
 import { useNavigate } from "react-router-dom";
-import Switch from "@mui/material/Switch";
-import ToggleButton from "@mui/material/ToggleButton";
-import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import CancelIcon from "@mui/icons-material/Cancel";
 
 const EditProduct = () => {
   const navigate = useNavigate();
@@ -36,12 +25,11 @@ const EditProduct = () => {
     productImages: [], // Added productImages array
     featured: false, // Added featured property
     bestSeller: false, // Added bestSeller property
-    isVerified: "false", // Added isVerified property
+    isVerified: false, // Added isVerified property
   });
   const [brands, setBrands] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0); // Added state to track selected image index
-  const [isVerified, setIsVerified] = useState(product.isVerified);
+  const [changedImage, setChangedImage] = useState(null);
 
   useEffect(() => {
     fetchProduct();
@@ -62,6 +50,8 @@ const EditProduct = () => {
       );
       if (response.data.success) {
         setProduct(response.data.product);
+        // Store unchanged images
+        setChangedImage(null); // Clear the changed image preview
       } else {
         toast.error("Failed to fetch product");
       }
@@ -114,34 +104,52 @@ const EditProduct = () => {
       toast.error("Failed to fetch categories");
     }
   };
-  const handleVerificationChange = (event) => {
-    setIsVerified(event.target.value);
-  };
-  
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setProduct({ ...product, [name]: value });
   };
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        // Create a copy of productImages array
-        const updatedProductImages = [...product.productImages];
-        // Replace the selected image URL with the new one
-        updatedProductImages[selectedImageIndex] = reader.result;
-        // Update the product state
-        setProduct({ ...product, productImages: updatedProductImages });
-      };
-      reader.readAsDataURL(file);
+  const handleImageChange = (action, index, files) => {
+    const newImages = [...product.productImages];
+
+    if (action === "change") {
+      // Change image
+      const file = files[0]; // Assuming only one file is selected
+      if (file) {
+        try {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            newImages[index] = file; // Update the specific image at the given index
+            setProduct({ ...product, productImages: newImages });
+            setChangedImage(reader.result); // Store updated image preview
+          };
+          reader.readAsDataURL(file);
+        } catch (error) {
+          console.error("Error converting image to blob:", error);
+          toast.error("Failed to convert image to blob");
+        }
+      }
+    } else if (action === "remove") {
+      // Remove image
+      newImages.splice(index, 1);
+      setProduct({ ...product, productImages: newImages });
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (
+      product.price < 0 ||
+      product.mrp < 0 ||
+      product.stock < 0 ||
+      !Number.isInteger(product.price) ||
+      !Number.isInteger(product.mrp) ||
+      !Number.isInteger(product.stock)
+    ) {
+      toast.error("Price, MRP, and Stock must be positive integers.");
+      return;
+    }
     try {
       const token = Cookies.get("token");
       const formData = new FormData();
@@ -155,10 +163,28 @@ const EditProduct = () => {
       formData.append("brand", product.brand);
       formData.append("subCategory", product.subCategory);
       formData.append("warrantyPeriod", product.warrantyPeriod);
-      formData.append("isVerified", isVerified); // Include isVerified
-      if (product.image) {
-        formData.append("productImages", product.image);
-      }
+      formData.append("isVerified", product.isVerified);
+
+      // Convert URL images to File objects if needed
+      const imagesPromises = product.productImages.map((image) => {
+        if (image instanceof File) {
+          return Promise.resolve(image); // Keep unchanged images as they are
+        } else {
+          // Convert URL to File object
+          return fetch(image)
+            .then((res) => res.blob())
+            .then((blob) => new File([blob], `image`, { type: blob.type }));
+        }
+      });
+
+      // Wait for all conversions to finish
+      const convertedImages = await Promise.all(imagesPromises);
+
+      // Append all product images (changed and unchanged)
+      convertedImages.forEach((image) => {
+        formData.append("productImages", image);
+      });
+
       const response = await axios.put(
         `${process.env.REACT_APP_BASE_URL}/admin/product/${id}`,
         formData,
@@ -274,79 +300,56 @@ const EditProduct = () => {
             <option value="48 months">48 months</option>
           </select>
 
-          <label>Featured:</label>
-          <Switch
-            checked={product.featured}
-            onChange={(e) =>
-              setProduct({ ...product, featured: e.target.checked })
-            }
-            color="primary"
-          />
-          <label>Best Seller:</label>
-          <Switch
-            checked={product.bestSeller}
-            onChange={(e) =>
-              setProduct({ ...product, bestSeller: e.target.checked })
-            }
-            color="primary"
-          />
-
-          <label>Is Verified:</label>
-          <FormControl component="fieldset">
-            <RadioGroup
-              aria-label="verification"
-              name="verification"
-              value={isVerified}
-              onChange={handleVerificationChange}
-              row
-            >
-              <FormControlLabel
-                value="true"
-                control={<Radio />}
-                label={
-                  <CheckCircleIcon
-                    style={{
-                      color: isVerified === "true" ? "green" : "inherit",
-                    }}
-                  />
-                }
-              />
-              <FormControlLabel
-                value="false"
-                control={<Radio />}
-                label={
-                  <CancelIcon
-                    style={{
-                      color: isVerified === "false" ? "red" : "inherit",
-                    }}
-                  />
-                }
-              />
-            </RadioGroup>
-          </FormControl>
-
           <div>
-            {product.productImages.length > 0 ? (
-              product.productImages.map((image, index) => (
-                <div key={index} className="image-item">
-                  <label>Image {index + 1}</label>
-                  <img
-                    src={image}
-                    alt={`Product ${index + 1}`}
-                    className="product-image"
-                  />
-                  <input
-                    type="file"
-                    onChange={handleImageChange}
-                    className="image-input"
-                  />
+            {product.productImages.slice(0, 6).map((image, index) => (
+              <div key={index} className="image-item">
+                <label>Image {index + 1}</label>
+                <img
+                  style={{ width: "200px", height: "200px" }}
+                  src={
+                    typeof image === "string"
+                      ? image
+                      : URL.createObjectURL(image)
+                  }
+                  alt={`Product ${index + 1}`}
+                  className="product-image"
+                />
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => handleImageChange("change", index, null)}
+                    className="change-image-button"
+                  >
+                    Change Image
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleImageChange("remove", index, null)}
+                    className="remove-image-button"
+                  >
+                    Remove Image
+                  </button>
                 </div>
-              ))
-            ) : (
-              <div className="no-image">No image found</div>
+              </div>
+            ))}
+
+            {product.productImages.length < 6 && (
+              <div className="image-item">
+                <label>Add Image:</label>
+                <input
+                  type="file"
+                  onChange={(e) =>
+                    handleImageChange(
+                      e.target.files,
+                      product.productImages.length
+                    )
+                  }
+                  className="image-input"
+                />
+              </div>
             )}
           </div>
-          <button type="submit">Update Product</button>
+          <button type="submit" style={{marginTop:"2%"}}>Update Product</button>
         </form>
         <ToastContainer />
       </div>

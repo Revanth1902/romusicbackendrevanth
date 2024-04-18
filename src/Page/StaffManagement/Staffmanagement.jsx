@@ -520,8 +520,8 @@ const StaffManagement = () => {
               color="primary"
               disabled={
                 submitting ||
-                !/^[A-Za-z]*$/.test(addStaffData.firstName) ||
-                !/^[A-Za-z]+(?: [A-Za-z]+)?$/.test(addStaffData.lastName)
+                !/^[A-Za-z\s]*$/.test(addStaffData.firstName) ||
+                !/^[A-Za-z\s]*$/.test(addStaffData.lastName)
               }
             >
               {submitting ? <CircularProgress size={24} /> : "Add"}
@@ -624,8 +624,8 @@ const StaffManagement = () => {
               color="primary"
               disabled={
                 submitting ||
-                !/^[A-Za-z]*$/.test(editStaffData.firstName) ||
-                !/^[A-Za-z]+(?: [A-Za-z]+)?$/.test(editStaffData.lastName)
+                !/^[A-Za-z ]*$/.test(editStaffData.firstName) ||
+                !/^[A-Za-z ]+$/.test(editStaffData.lastName)
               }
             >
               {submitting ? <CircularProgress size={24} /> : "Save"}

@@ -149,7 +149,7 @@ export default function ProductManagement() {
               <AddIcon sx={{ mr: 1 }} />
               Category Management
             </Button>
-            <Button sx={{ background: "orange" }} variant="contained">
+            {/* <Button sx={{ background: "orange" }} variant="contained">
               <AddIcon />
               <ListItem
                 disablePadding
@@ -160,7 +160,7 @@ export default function ProductManagement() {
               >
                 Add Product
               </ListItem>
-            </Button>
+            </Button> */}
           </Box>
         </Box>
 

@@ -96,14 +96,15 @@ const SubscriptionManagement = () => {
     setLoading(true);
     try {
       const amount = parseInt(formData.amount);
-      const timePeriodInMonths = parseInt(formData.timePeriod); // Parse timePeriod to integer
+      const timePeriodInMonths = parseInt(formData.timePeriod);
       if (
         isNaN(amount) ||
         amount <= 0 ||
-        isNaN(timePeriodInMonths) || // Check if timePeriod is not a number
-        timePeriodInMonths <= 0 || // Check if timePeriod is less than or equal to 0
-        !Number.isInteger(timePeriodInMonths) || // Check if timePeriod is not an integer
-        formData.amount.toString().includes(".") // Check if amount contains decimal points
+        isNaN(timePeriodInMonths) ||
+        timePeriodInMonths <= 0 ||
+        !Number.isInteger(timePeriodInMonths) ||
+        formData.amount.toString().includes(".") ||
+        formData.timePeriod.toString().includes(".") // Check if timePeriod contains decimal points
       ) {
         toast.error(
           "Please provide a valid amount and time period (in months)"
@@ -158,14 +159,15 @@ const SubscriptionManagement = () => {
     setLoading(true);
     try {
       const amount = parseInt(formData.amount);
-      const timePeriodInMonths = parseInt(formData.timePeriod); // Parse timePeriod to integer
+      const timePeriodInMonths = parseInt(formData.timePeriod);
       if (
         isNaN(amount) ||
         amount <= 0 ||
-        isNaN(timePeriodInMonths) || // Check if timePeriod is not a number
-        timePeriodInMonths <= 0 || // Check if timePeriod is less than or equal to 0
-        !Number.isInteger(timePeriodInMonths) || // Check if timePeriod is not an integer
-        formData.amount.toString().includes(".") // Check if amount contains decimal points
+        isNaN(timePeriodInMonths) ||
+        timePeriodInMonths <= 0 ||
+        !Number.isInteger(timePeriodInMonths) ||
+        formData.amount.toString().includes(".") ||
+        formData.timePeriod.toString().includes(".") // Check if timePeriod contains decimal points
       ) {
         toast.error(
           "Please provide a valid amount and time period (in months)"
