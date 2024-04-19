@@ -1,42 +1,53 @@
-.containering {
+.login-container {
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
+  align-items: center;
   height: 100vh;
+  background-image: url('https://img.freepik.com/premium-photo/toy-shopping-cart-with-boxes-credit-card-with-copy-space_339191-197.jpg');
+  background-size:cover;
 }
 
-.form {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 300px;
-  border: 1px solid #ccc;
-  padding: 20px;
-  border-radius: 5px;
+.login-form {
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 40px;
+  border-radius: 10px;
+  box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.1);
+  max-width: 400px;
+  width: 100%;
+}
+
+.login-form h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #333;
 }
 
 .form-group {
-  margin-bottom: 10px;
+  margin-bottom: 20px;
 }
 
-input {
+.form-group label {
+  font-size: 16px;
+  color: #555;
+}
+
+.form-group input {
   width: 100%;
-  padding: 8px;
-  margin-bottom: 10px;
+  padding: 10px;
   border: 1px solid #ccc;
-  border-radius: 3px;
+  border-radius: 5px;
+  font-size: 16px;
 }
 
 .btn {
   width: 100%;
   padding: 10px;
-  background-color: #F58634;
-  color: white;
+  background-color: #007bff;
+  color: #fff;
   border: none;
-  border-radius: 3px;
+  border-radius: 5px;
   cursor: pointer;
+  font-size: 16px;
 }
 
 .btn:hover {
@@ -44,6 +55,7 @@ input {
 }
 
 .error {
-  color: red;
-  margin-bottom: 10px;
+  color: #ff0000;
+  font-size: 14px;
+  margin-bottom: 10px
 }

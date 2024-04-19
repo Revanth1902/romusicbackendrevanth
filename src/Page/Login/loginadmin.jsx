@@ -33,33 +33,48 @@ const Login = () => {
     }
   };
 
+  const handleInputChange = (e) => {
+    setError(""); // Clear error message on input change
+    if (e.target.name === "email") {
+      setEmail(e.target.value);
+    } else if (e.target.name === "password") {
+      setPassword(e.target.value);
+    }
+  };
+
   return (
-    <div className="containering">
-      <h2>Login</h2>
-      {error && <div className="error">{error}</div>}
-      <form className="form" onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label>Email:</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </div>
-        <div className="form-group">
-          <label>Password:</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        <button className="btn" type="submit">
-          Login
-        </button>
-      </form>
+    <div className="login-container">
+      <div className="login-form">
+        <h2>Login</h2>
+        {error && <div className="error">{error}</div>}
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label htmlFor="email">Email:</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={email}
+              onChange={handleInputChange}
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="password">Password:</label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              value={password}
+              onChange={handleInputChange}
+              required
+            />
+          </div>
+          <button className="btn" type="submit">
+            Login
+          </button>
+        </form>
+      </div>
     </div>
   );
 };
