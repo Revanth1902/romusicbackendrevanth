@@ -143,7 +143,7 @@ export default function InventoryManagement() {
               >
                 <Typography variant="h6">Banner Images</Typography>
                 <Typography variant="h6">
-                  Category Name
+                 Banner type
                   {sortByCategory === "asc" ? (
                     <ArrowUpwardIcon onClick={handleSortByCategory} />
                   ) : (
@@ -177,7 +177,7 @@ export default function InventoryManagement() {
                         />
                       ))}
                     </Box>
-                    <Typography>{banner.bannerImages[0].category}</Typography>
+                    <Typography>{banner.subCategory}</Typography>
 
                     <Button
                       onClick={() => handleDeleteBanner(banner._id)}
