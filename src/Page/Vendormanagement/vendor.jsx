@@ -216,24 +216,44 @@ const VendorManagement = () => {
     setLoading(true);
     try {
       if (!/^\d{10}$/.test(formData.mobileNo)) {
-        toast.error(
-          "Mobile Number should be numeric and have exactly 10 digits"
-        );
+        toast.error("Mobile Number should be numeric and have exactly 10 digits");
         return;
       }
-
+  
       if (!formData.name || !formData.mobileNo || !formData.email) {
         toast.error("Name, Mobile Number, and Email are required fields");
         return;
       }
-
+  
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(formData.email)) {
         toast.error("Invalid email format");
         return;
       }
-
+  
       const token = Cookies.get("token");
+      const vendorToEdit = vendors.find((vendor) => vendor._id === editingVendorId);
+  
+      // Compare form data with existing data to detect changes
+      const updatedData = {};
+      if (formData.name !== vendorToEdit.name) {
+        updatedData.name = formData.name;
+      }
+      if (formData.mobileNo !== vendorToEdit.mobileNo) {
+        updatedData.mobileNo = formData.mobileNo;
+      }
+      if (formData.email !== vendorToEdit.email) {
+        updatedData.email = formData.email;
+      }
+      if (formData.address !== vendorToEdit.address) {
+        updatedData.address = formData.address;
+      }
+  
+      if (Object.keys(updatedData).length === 0) {
+        toast.info("No changes detected");
+        return;
+      }
+  
       const response = await fetch(
         `${process.env.REACT_APP_BASE_URL}/admin/vendor/updateDetails/${editingVendorId}`,
         {
@@ -242,7 +262,7 @@ const VendorManagement = () => {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(formData),
+          body: JSON.stringify(updatedData), // Send only the updated fields
         }
       );
       const data = await response.json();
@@ -267,6 +287,7 @@ const VendorManagement = () => {
       setLoading(false);
     }
   };
+  
 
   const handleDeleteVendor = async (vendorId) => {
     try {
