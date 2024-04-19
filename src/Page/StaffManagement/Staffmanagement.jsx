@@ -89,6 +89,7 @@ const StaffManagement = () => {
   };
 
   const handleDelete = async () => {
+    
     try {
       const token = Cookies.get("token");
       const response = await fetch(
@@ -117,6 +118,13 @@ const StaffManagement = () => {
   };
 
   const handleAddStaff = async () => {
+
+    if (addStaffData.mobileNo.length !== 10) {
+      toast.error("Mobile number should be 10 digits");
+      setSubmitting(false); // Re-enable the button
+      return;
+    }
+    setSubmitting(true); 
     try {
       // Existing code...
 
@@ -155,6 +163,12 @@ const StaffManagement = () => {
   };
 
   const handleEditSave = async () => {
+    if (editStaffData.mobileNo.length !== 10) {
+      toast.error("Mobile number should be 10 digits");
+      setSubmitting(false); // Re-enable the button
+      return;
+    }
+    setSubmitting(true); 
     try {
       // Existing code...
 

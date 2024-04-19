@@ -110,44 +110,50 @@ const EditProduct = () => {
     setProduct({ ...product, [name]: value });
   };
 
-  const handleImageChange = (action, index, files) => {
+  const handleImageChange = (action, index, file) => {
     const newImages = [...product.productImages];
-
-    if (action === "change") {
+  
+    if (action === "change" && file) {
       // Change image
-      const file = files[0]; // Assuming only one file is selected
-      if (file) {
-        try {
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            newImages[index] = file; // Update the specific image at the given index
-            setProduct({ ...product, productImages: newImages });
-            setChangedImage(reader.result); // Store updated image preview
-          };
-          reader.readAsDataURL(file);
-        } catch (error) {
-          console.error("Error converting image to blob:", error);
-          toast.error("Failed to convert image to blob");
-        }
-      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        newImages[index] = file; // Update the specific image at the given index
+        setProduct({ ...product, productImages: newImages });
+        setChangedImage(reader.result); // Store updated image preview
+      };
+      reader.readAsDataURL(file);
     } else if (action === "remove") {
       // Remove image
       newImages.splice(index, 1);
       setProduct({ ...product, productImages: newImages });
+    } else if (action === "add" && file) {
+      // Add new image
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        newImages.push(file); // Add the new image to the end of the array
+        setProduct({ ...product, productImages: newImages });
+        setChangedImage(reader.result); // Store updated image preview
+      };
+      reader.readAsDataURL(file);
+    } else {
+      // Handle other cases or show an error message
+      console.error("Invalid action or missing file:", action, file);
+      toast.error("Invalid action or missing file");
     }
   };
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (
-      product.price < 0 ||
-      product.mrp < 0 ||
+      product.price <= 0 ||
+      product.mrp <= 0 ||
       product.stock < 0 ||
-      !Number.isInteger(product.price) ||
-      !Number.isInteger(product.mrp) ||
-      !Number.isInteger(product.stock)
+      !Number.isInteger(parseFloat(product.price)) ||
+      !Number.isInteger(parseFloat(product.mrp)) ||
+      !Number.isInteger(parseFloat(product.stock))
     ) {
-      toast.error("Price, MRP, and Stock must be positive integers.");
+      toast.error("Price and MRP must be positive integers. Stock can't be negative.");
       return;
     }
     try {
@@ -156,7 +162,7 @@ const EditProduct = () => {
       formData.append("name", product.name);
       formData.append("price", product.price);
       formData.append("mrp", product.mrp);
-      formData.append("stock", product.stock);
+      formData.append("stock", product.stock); // Include stock in formData
       formData.append("category", product.category);
       formData.append("description", product.description);
       formData.append("specification", product.specification);
@@ -164,27 +170,32 @@ const EditProduct = () => {
       formData.append("subCategory", product.subCategory);
       formData.append("warrantyPeriod", product.warrantyPeriod);
       formData.append("isVerified", product.isVerified);
-
-      // Convert URL images to File objects if needed
-      const imagesPromises = product.productImages.map((image) => {
-        if (image instanceof File) {
-          return Promise.resolve(image); // Keep unchanged images as they are
-        } else {
-          // Convert URL to File object
-          return fetch(image)
+  
+      // Create an array to store promises for each image conversion
+      const imageConversionPromises = [];
+  
+      // Append all product images (changed and unchanged)
+      product.productImages.forEach((image, index) => {
+        if (typeof image === "string") {
+          // Existing images are URLs, convert them to files
+          const promise = fetch(image)
             .then((res) => res.blob())
-            .then((blob) => new File([blob], `image`, { type: blob.type }));
+            .then((blob) => {
+              formData.append(`productImages`, blob, `image${index}.png`);
+            })
+            .catch((error) => {
+              console.error("Error converting URL to blob:", error);
+            });
+          imageConversionPromises.push(promise);
+        } else {
+          // New images are already files, append them directly
+          formData.append(`productImages`, image);
         }
       });
-
-      // Wait for all conversions to finish
-      const convertedImages = await Promise.all(imagesPromises);
-
-      // Append all product images (changed and unchanged)
-      convertedImages.forEach((image) => {
-        formData.append("productImages", image);
-      });
-
+  
+      // Wait for all image conversion promises to resolve
+      await Promise.all(imageConversionPromises);
+  
       const response = await axios.put(
         `${process.env.REACT_APP_BASE_URL}/admin/product/${id}`,
         formData,
@@ -208,6 +219,7 @@ const EditProduct = () => {
       toast.error("Failed to update product");
     }
   };
+  
 
   return (
     <>
@@ -241,7 +253,7 @@ const EditProduct = () => {
             type="number"
             name="stock"
             value={product.stock}
-            onChange={handleChange}
+            onChange={handleChange} // Ensure stock value is updated
           />
           <label>Category:</label>
           <select
@@ -301,7 +313,7 @@ const EditProduct = () => {
           </select>
 
           <div>
-            {product.productImages.slice(0, 6).map((image, index) => (
+            {product.productImages.map((image, index) => (
               <div key={index} className="image-item">
                 <label>Image {index + 1}</label>
                 <img
@@ -317,11 +329,23 @@ const EditProduct = () => {
                 <div>
                   <button
                     type="button"
-                    onClick={() => handleImageChange("change", index, null)}
+                    onClick={(e) => {
+                      const fileInput = document.createElement("input");
+                      fileInput.type = "file";
+                      fileInput.accept = "image/*";
+                      fileInput.onchange = (event) => {
+                        const file = event.target.files[0];
+                        if (file) {
+                          handleImageChange("change", index, file);
+                        }
+                      };
+                      fileInput.click();
+                    }}
                     className="change-image-button"
                   >
                     Change Image
                   </button>
+
                   <button
                     type="button"
                     onClick={() => handleImageChange("remove", index, null)}
@@ -340,8 +364,9 @@ const EditProduct = () => {
                   type="file"
                   onChange={(e) =>
                     handleImageChange(
-                      e.target.files,
-                      product.productImages.length
+                      "add", // Action: "add" for adding a new image
+                      null, // No need for index when adding a new image
+                      e.target.files[0] // Only the first selected file
                     )
                   }
                   className="image-input"
@@ -349,7 +374,9 @@ const EditProduct = () => {
               </div>
             )}
           </div>
-          <button type="submit" style={{marginTop:"2%"}}>Update Product</button>
+          <button type="submit" style={{ marginTop: "2%" }}>
+            Update Product
+          </button>
         </form>
         <ToastContainer />
       </div>
