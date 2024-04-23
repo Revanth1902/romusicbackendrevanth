@@ -1,0 +1,101 @@
+/* AdminDashboard.css */
+.admin-dashboard {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  body {
+    background-color: black;
+    color: wheat;
+  }
+  
+  header {
+    display: flex;
+    align-items: center;
+  }
+  
+  header img {
+    width: 100px;
+    margin-right: 10px;
+  }
+  
+  main {
+    margin-top: 20px;
+  }
+  
+  .upload-form {
+    background-color: cornflowerblue;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    color: black;
+  }
+  
+  .form-group {
+    margin-bottom: 10px;
+  }
+  
+  label {
+    font-weight: bold;
+  }
+  
+  input[type="text"],
+  input[type="url"],
+  textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+  }
+  
+  button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  
+  footer {
+    margin-top: 20px;
+    text-align: center;
+  }
+  
+  .upload-list {
+    margin-top: 20px;
+
+  }
+  
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #fff;
+   color: black;
+ 
+  }
+  
+  thead th {
+    background-color: aquamarine;
+    padding: 15px;
+    text-align: left;
+  }
+  
+  tbody td {
+    padding: 15px;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  a {
+    color:cadetblue;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  
+  a:hover {
+    text-decoration: underline;
+  }
+  
