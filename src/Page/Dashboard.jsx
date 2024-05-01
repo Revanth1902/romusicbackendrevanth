@@ -35,23 +35,7 @@ export default function Dashboard() {
           }}
         >
           <Typography variant="h5">Welcome back, Admin</Typography>
-          <FormControl sx={{ m: 1, minWidth: 250 }} size="small">
-            <InputLabel id="demo-select-small-label">Today</InputLabel>
-            <Select
-              labelId="demo-select-small-label"
-              id="demo-select-small"
-              value={time}
-              label="Time"
-              onChange={handleChange}
-            >
-              <MenuItem value="">
-                <em>None</em>
-              </MenuItem>
-              <MenuItem value={7}>Weekly</MenuItem>
-              <MenuItem value={30}>Monthly</MenuItem>
-              <MenuItem value={365}>Yearly</MenuItem>
-            </Select>
-          </FormControl>
+         
         </Box>
 
         <Box
@@ -63,8 +47,11 @@ export default function Dashboard() {
           }}
         >
           <BarChartOne />
-          <BarChartTwo />
-          <PieChartThree />
+          <BarChartTwo/>
+          <CardChartSix />
+          {/* <RangeChartFour /> */}
+          {/* <BarChartTwo />
+          <PieChartThree /> */}
         </Box>
         <Box
           sx={{
@@ -74,16 +61,16 @@ export default function Dashboard() {
             marginBottom: "15px",
           }}
         >
-          <RangeChartFour />
-          <TableChartFive />
-          <CardChartSix />
+          
+          {/* <TableChartFive /> */}
+         
         </Box>
 
-        <Box>
+        {/* <Box>
           <SellingProducts />
           <CustomersOrders />
           <SaleVsDate />
-        </Box>
+        </Box> */}
       </Box>
     </Box>
   );

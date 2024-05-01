@@ -6,54 +6,73 @@ import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
-
-import React, { useEffect, useRef } from "react";
+import Cookies from "js-cookie";
+import React, { useEffect, useRef, useState } from "react";
 import Chart from "chart.js/auto";
 
 const BarChartOne = () => {
   const chartRef = useRef(null);
   const chartInstance = useRef(null);
+  const [time, setTime] = useState("");
+  const [data, setData] = useState(null);
 
-  const [time, setTime] = React.useState("");
+  const fetchData = async () => {
+    try {
+      const token = Cookies.get("token"); // Assuming cookies is imported and set up properly
+      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/order/getOrderByStatus`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          // Add other headers if needed
+        },
+      });
+      const jsonData = await response.json();
+      setData(jsonData);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
+  
 
   const handleChange = (event) => {
     setTime(event.target.value);
   };
 
   useEffect(() => {
-    if (chartInstance.current) {
-      chartInstance.current.destroy();
-    }
-    const myChartRef = chartRef.current.getContext("2d");
+    fetchData();
+  }, []); // Fetch data on component mount
 
-    const barColors = [
-      "rgb(0, 101, 193)",
-      "rgb(0, 101, 193)",
-      "rgb(0, 101, 193)",
-      "rgb(0, 101, 193)",
-      "rgb(0, 101, 193)",
-    ];
-    chartInstance.current = new Chart(myChartRef, {
-      type: "bar",
-      data: {
-        labels: ["label 1", "label 2", "label 3", "label 4", "label 5"],
-        datasets: [
-          {
-            label: "Data",
-            data: [12, 19, 8, 4, 8],
-            backgroundColor: barColors,
-            barPercentage: 0.2,
-            borderRadius: 10,
-          },
-        ],
-      },
-    });
-    return () => {
+  useEffect(() => {
+    if (data) {
       if (chartInstance.current) {
         chartInstance.current.destroy();
       }
-    };
-  });
+      const myChartRef = chartRef.current.getContext("2d");
+
+      const barColors = [
+        "rgb(0, 101, 193)",
+        "rgb(0, 101, 193)",
+        "rgb(0, 101, 193)",
+        "rgb(0, 101, 193)",
+        "rgb(0, 101, 193)",
+      ];
+
+      chartInstance.current = new Chart(myChartRef, {
+        type: "bar",
+        data: {
+          labels: data.labels,
+          datasets: [
+            {
+              label: "Data",
+              data: data.values,
+              backgroundColor: barColors,
+              barPercentage: 0.2,
+              borderRadius: 10,
+            },
+          ],
+        },
+      });
+    }
+  }, [data]);
 
   return (
     <>
@@ -70,12 +89,12 @@ const BarChartOne = () => {
             <br />
             <Typography paragraph style={{ fontWeight: "800" }}>
               <CurrencyRupeeIcon style={{ fontSize: "15px" }} />
-              400
+              {data && data.totalOrders}
               <span
                 style={{ color: "green", fontSize: "12px", fontWeight: "200" }}
               >
                 <ArrowUpwardIcon sx={{ fontSize: "12px" }} />
-                11.94%
+                {data && data.totalOrders}%
               </span>
             </Typography>
           </Typography>
@@ -105,7 +124,7 @@ const BarChartOne = () => {
           </FormControl>
         </Box>
         <canvas ref={chartRef} />
-        <Box
+        {/* <Box
           sx={{
             display: "flex",
             justifyContent: "space-between",
@@ -116,12 +135,12 @@ const BarChartOne = () => {
             Categories
             <br />
             <Typography paragraph style={{ fontWeight: "800" }}>
-              12
+              {data && data.categoriesCount}
               <span
                 style={{ color: "green", fontSize: "12px", fontWeight: "200" }}
               >
                 <ArrowUpwardIcon sx={{ fontSize: "12px" }} />
-                11.94%
+                {data && data.categoriesIncreasePercentage}%
               </span>
             </Typography>
           </Typography>
@@ -130,7 +149,7 @@ const BarChartOne = () => {
             Sub Categories
             <br />
             <Typography paragraph style={{ fontWeight: "800" }}>
-              06
+              {data && data.subCategoriesCount}
               <span
                 style={{
                   color: "green",
@@ -139,11 +158,11 @@ const BarChartOne = () => {
                 }}
               >
                 <ArrowUpwardIcon sx={{ fontSize: "12px" }} />
-                11.94%
+                {data && data.subCategoriesIncreasePercentage}%
               </span>
             </Typography>
           </Typography>
-        </Box>
+        </Box> */}
       </div>
     </>
   );

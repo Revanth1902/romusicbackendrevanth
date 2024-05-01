@@ -166,7 +166,8 @@ export default function SideBar() {
         open={open}
         sx={{
           display: "flex",
-          justifyContent: "space-between",
+          justifyContent:"flex-end",
+         
         }}
       >
         <Toolbar
@@ -175,6 +176,8 @@ export default function SideBar() {
             color: "black",
             display: "flex",
             justifyContent: "space-between",
+            ...(open && { justifyContent:"flex-end" }),
+            
           }}
         >
           <IconButton
@@ -192,47 +195,12 @@ export default function SideBar() {
           <Typography variant="h6" noWrap component="div">
             <Box
               sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
+                display:"flex",
+                justifyContent:"space-between",
+                alignItems:"flex-end",
+                ...(open && { justifyContent:"flex-end", alignItems:"flex-end" }),
               }}
             >
-              <Paper
-                component="form"
-                sx={{
-                  p: "0px 4px",
-                  mr: 1.5,
-                  display: "flex",
-                  alignItems: "center",
-                  width: 400,
-                  border: "1px solid grey",
-                }}
-              >
-                <InputBase
-                  sx={{ ml: 1, flex: 1 }}
-                  placeholder="Search"
-                  inputProps={{ "aria-label": "search google maps" }}
-                />
-                <IconButton
-                  type="button"
-                  sx={{ p: "10px" }}
-                  aria-label="search"
-                >
-                  <SearchIcon />
-                </IconButton>
-                <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
-              </Paper>
-
-              <Button
-                component="label"
-                role={undefined}
-                variant="contained"
-                tabIndex={-1}
-                sx={{ background: "orange", p: "10px 15px", mr: 1.5 }}
-                startIcon={<StorefrontIcon />}
-              >
-                Visit My Store
-              </Button>
 
               <Button
                 component="label"
@@ -251,9 +219,9 @@ export default function SideBar() {
                     color: "black",
                   }}
                 >
-                  Revanth
+                 Admin Dashboard
                 </span>
-                <ArrowDropDownIcon sx={{ color: "black" }} />
+               
               </Button>
               <IconButton
                 onClick={() => setShowLogoutDialog(true)}
