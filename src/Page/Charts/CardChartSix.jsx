@@ -6,14 +6,36 @@ import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
 import React from "react";
+import { useEffect } from "react";
+import Cookies from "js-cookie";
 
 const CardChartSix = () => {
   const [time, setTime] = React.useState("");
-
+  const [data, setData] = React.useState(null);
   const handleChange = (event) => {
     setTime(event.target.value);
   };
+  const fetchData = async () => {
+    try {
+      const token = Cookies.get("token"); // Assuming cookies is imported and set up properly
+      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/order/getOrderByStatus`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          // Add other headers if needed
+        },
+      });
+      const jsonData = await response.json();
+      setData(jsonData);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
+  
 
+
+  useEffect(() => {
+    fetchData();
+  }, []);
   return (
     <>
       <div className="PieChartOne01">
@@ -73,7 +95,7 @@ const CardChartSix = () => {
             }}
           >
             <Typography variant="h6" sx={{ color: "orange", fontSize: "15px" }}>
-              160
+            {data && data.count}
             </Typography>
             <Typography
               variant="h6"

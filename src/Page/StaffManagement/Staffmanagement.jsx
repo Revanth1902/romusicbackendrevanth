@@ -441,21 +441,23 @@ const StaffManagement = () => {
             </Table>
           </TableContainer>
         )}
-        <Dialog
-          open={openDeleteDialog}
-          onClose={() => setOpenDeleteDialog(false)}
-        >
-          <DialogTitle>Delete Staff</DialogTitle>
-          <DialogContent>
-            <Typography>Are you sure you want to delete this staff?</Typography>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setOpenDeleteDialog(false)}>Cancel</Button>
-            <Button onClick={handleDelete} color="secondary">
-              Delete
-            </Button>
-          </DialogActions>
-        </Dialog>
+        {openDeleteDialog && (
+          <div className="delete-confirmation-modal">
+            <div className="modal-content">
+              <h2>Confirm Deletion</h2>
+              <p>Are you sure you want to delete this coupon?</p>
+              <div className="delete-confirmation-buttons">
+                <button onClick={handleDelete} >
+                  Delete
+                </button>
+
+                <button  onClick={() => setOpenDeleteDialog(false)}>
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         <Dialog
           open={openAddStaffDialog}
           onClose={() => setOpenAddStaffDialog(false)}

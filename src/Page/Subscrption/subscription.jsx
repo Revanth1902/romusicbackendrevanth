@@ -24,6 +24,7 @@ const SubscriptionManagement = () => {
   const [loading, setLoading] = useState(true);
   const [openAddDialog, setOpenAddDialog] = useState(false);
   const [openEditDialog, setOpenEditDialog] = useState(false);
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     disc: "",
@@ -32,6 +33,7 @@ const SubscriptionManagement = () => {
     image: null,
   });
   const [updatingSubscriptionId, setUpdatingSubscriptionId] = useState(null);
+  const [deletingSubscriptionId, setDeletingSubscriptionId] = useState(null);
 
   useEffect(() => {
     fetchSubscriptions();
@@ -111,7 +113,7 @@ const SubscriptionManagement = () => {
         );
         return;
       }
-  
+
       const token = Cookies.get("token");
       const formDataWithImage = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
@@ -150,10 +152,6 @@ const SubscriptionManagement = () => {
       setLoading(false);
     }
   };
-  
-
-  
-  
 
   const handleUpdateSubscription = async () => {
     setLoading(true);
@@ -174,11 +172,11 @@ const SubscriptionManagement = () => {
         );
         return;
       }
-  
+
       const token = Cookies.get("token");
       const formDataWithoutImage = { ...formData }; // Create a copy of formData
       delete formDataWithoutImage.image; // Remove image field from the copy
-  
+
       const response = await axios.put(
         `${process.env.REACT_APP_BASE_URL}/admin/subscription/updateSubsDetails/${updatingSubscriptionId}`,
         formDataWithoutImage,
@@ -205,7 +203,7 @@ const SubscriptionManagement = () => {
             }
           );
         }
-  
+
         toast.success(response.data.message || "Subscription updated successfully");
         setOpenEditDialog(false);
         fetchSubscriptions();
@@ -226,9 +224,6 @@ const SubscriptionManagement = () => {
       setLoading(false);
     }
   };
-  
-  
-  
 
   const handleOpenAddDialog = () => {
     setOpenAddDialog(true);
@@ -254,6 +249,17 @@ const SubscriptionManagement = () => {
       timePeriod: subscriptionToUpdate.timePeriod, // Set timePeriod field
       image: null,
     });
+  };
+
+  const handleOpenDeleteDialog = (subscriptionId) => {
+    setDeletingSubscriptionId(subscriptionId);
+    setOpenDeleteDialog(true);
+  };
+
+  const handleDeleteConfirmed = async () => {
+    if (!deletingSubscriptionId) return;
+    await handleDelete(deletingSubscriptionId);
+    setOpenDeleteDialog(false);
   };
 
   return (
@@ -321,7 +327,7 @@ const SubscriptionManagement = () => {
                     }}
                   >
                     <DeleteIcon
-                      onClick={() => handleDelete(subscription._id)}
+                      onClick={() => handleOpenDeleteDialog(subscription._id)}
                       style={{ marginRight: "5%" }}
                     />
                     <EditIcon
@@ -385,7 +391,7 @@ const SubscriptionManagement = () => {
                 width: "200px",
                 height: "auto",
                 alignSelf: "center",
-                marginTop:"1%"
+                marginTop: "1%",
               }}
             />
           )}
@@ -401,7 +407,10 @@ const SubscriptionManagement = () => {
           </Button>
         </DialogActions>
       </Dialog>
-      <Dialog open={openEditDialog} onClose={() => setOpenEditDialog(false)}>
+      <Dialog
+        open={openEditDialog}
+        onClose={() => setOpenEditDialog(false)}
+      >
         <DialogTitle>Edit Subscription</DialogTitle>
         <DialogContent>
           <TextField
@@ -450,7 +459,7 @@ const SubscriptionManagement = () => {
                 width: "200px",
                 height: "auto",
                 alignSelf: "center",
-                marginTop:"1%"
+                marginTop: "1%",
               }}
             />
           )}
@@ -470,6 +479,23 @@ const SubscriptionManagement = () => {
           </Button>
         </DialogActions>
       </Dialog>
+      {openDeleteDialog && (
+          <div className="delete-confirmation-modal">
+            <div className="modal-content">
+              <h2>Confirm Deletion</h2>
+              <p>Are you sure you want to delete this coupon?</p>
+              <div className="delete-confirmation-buttons">
+                <button onClick={handleDeleteConfirmed} >
+                  Delete
+                </button>
+
+                <button  onClick={() => setOpenDeleteDialog(false)}>
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       <ToastContainer />
     </Box>
   );

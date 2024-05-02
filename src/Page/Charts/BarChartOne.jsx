@@ -33,9 +33,6 @@ const BarChartOne = () => {
   };
   
 
-  const handleChange = (event) => {
-    setTime(event.target.value);
-  };
 
   useEffect(() => {
     fetchData();
@@ -63,7 +60,7 @@ const BarChartOne = () => {
           datasets: [
             {
               label: "Data",
-              data: data.values,
+              data: data.count,
               backgroundColor: barColors,
               barPercentage: 0.2,
               borderRadius: 10,
@@ -89,16 +86,16 @@ const BarChartOne = () => {
             <br />
             <Typography paragraph style={{ fontWeight: "800" }}>
               <CurrencyRupeeIcon style={{ fontSize: "15px" }} />
-              {data && data.totalOrders}
+              {data && data.count}
               <span
                 style={{ color: "green", fontSize: "12px", fontWeight: "200" }}
               >
                 <ArrowUpwardIcon sx={{ fontSize: "12px" }} />
-                {data && data.totalOrders}%
+                {data && data.count}%
               </span>
             </Typography>
           </Typography>
-          <FormControl
+          {/* <FormControl
             sx={{
               m: 1,
               minWidth: 120,
@@ -121,7 +118,7 @@ const BarChartOne = () => {
               <MenuItem value={30}>Monthly</MenuItem>
               <MenuItem value={365}>Yearly</MenuItem>
             </Select>
-          </FormControl>
+          </FormControl> */}
         </Box>
         <canvas ref={chartRef} />
         {/* <Box

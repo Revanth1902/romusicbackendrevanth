@@ -297,27 +297,28 @@ export default function OrderManagement() {
               }}
             >
               <Typography variant="h6" sx={{ fontSize: "15px" }}>
-                Cancelled
-                <br />
-                <Typography paragraph style={{ fontWeight: "800" }}>
-                  90
-                  <span
-                    style={{
-                      color: "orange",
-                      fontSize: "12px",
-                      fontWeight: "200",
-                    }}
-                  >
-                    -20%
-                  </span>
-                </Typography>
-              </Typography>
+    Cancelled
+    <br />
+    <Typography paragraph style={{ fontWeight: "800" }}>
+        {countOrdersByStatus("Cancelled")}
+        <span
+            style={{
+                color: "orange",
+                fontSize: "12px",
+                fontWeight: "200",
+            }}
+        >
+            {` -${Math.round((countOrdersByStatus("Cancelled") / orders.length) * 100)}%`}
+        </span>
+    </Typography>
+</Typography>
+
 
               <Typography variant="h6" sx={{ fontSize: "15px" }}>
                 Returned
                 <br />
                 <Typography paragraph style={{ fontWeight: "800" }}>
-                  20
+                {countOrdersByStatus("Returned")}
                 </Typography>
               </Typography>
 
@@ -325,7 +326,7 @@ export default function OrderManagement() {
                 Damaged
                 <br />
                 <Typography paragraph style={{ fontWeight: "800" }}>
-                  9
+                {countOrdersByStatus("Damaged")}
                 </Typography>
               </Typography>
             </Box>

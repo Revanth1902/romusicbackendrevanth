@@ -504,23 +504,23 @@ const VendorManagement = () => {
           </Button>
         </DialogActions>
       </Dialog>
-      <Dialog
-        open={deleteDialogOpen}
-        onClose={() => setDeleteDialogOpen(false)}
-      >
-        <DialogTitle>Confirm Delete</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Are you sure you want to delete this vendor?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
-          <Button onClick={handleConfirmDelete} color="primary">
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {deleteDialogOpen && (
+          <div className="delete-confirmation-modal">
+            <div className="modal-content">
+              <h2>Confirm Deletion</h2>
+              <p>Are you sure you want to delete this coupon?</p>
+              <div className="delete-confirmation-buttons">
+                <button onClick={handleConfirmDelete} >
+                  Delete
+                </button>
+
+                <button onClick={() => setDeleteDialogOpen(false)}>
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       <Dialog open={openViewDialog} onClose={() => setOpenViewDialog(false)}>
         <DialogTitle>Vendor Details</DialogTitle>
         <DialogContent>

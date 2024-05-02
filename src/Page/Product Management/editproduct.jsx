@@ -23,9 +23,9 @@ const EditProduct = () => {
     subCategory: "",
     warrantyPeriod: "",
     productImages: [], // Added productImages array
+    isVerified: false, // Added isVerified property
     featured: false, // Added featured property
     bestSeller: false, // Added bestSeller property
-    isVerified: false, // Added isVerified property
   });
   const [brands, setBrands] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -110,9 +110,15 @@ const EditProduct = () => {
     setProduct({ ...product, [name]: value });
   };
 
+  const handleToggle = (property) => {
+    setProduct((prevProduct) => {
+      return { ...prevProduct, [property]: !prevProduct[property] };
+    });
+  };
+
   const handleImageChange = (action, index, file) => {
     const newImages = [...product.productImages];
-  
+
     if (action === "change" && file) {
       // Change image
       const reader = new FileReader();
@@ -141,7 +147,6 @@ const EditProduct = () => {
       toast.error("Invalid action or missing file");
     }
   };
-  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -153,7 +158,9 @@ const EditProduct = () => {
       !Number.isInteger(parseFloat(product.mrp)) ||
       !Number.isInteger(parseFloat(product.stock))
     ) {
-      toast.error("Price and MRP must be positive integers. Stock can't be negative.");
+      toast.error(
+        "Price and MRP must be positive integers. Stock can't be negative."
+      );
       return;
     }
     try {
@@ -170,10 +177,12 @@ const EditProduct = () => {
       formData.append("subCategory", product.subCategory);
       formData.append("warrantyPeriod", product.warrantyPeriod);
       formData.append("isVerified", product.isVerified);
-  
+      formData.append("featured", product.featured);
+      formData.append("bestSeller", product.bestSeller);
+
       // Create an array to store promises for each image conversion
       const imageConversionPromises = [];
-  
+
       // Append all product images (changed and unchanged)
       product.productImages.forEach((image, index) => {
         if (typeof image === "string") {
@@ -192,10 +201,10 @@ const EditProduct = () => {
           formData.append(`productImages`, image);
         }
       });
-  
+
       // Wait for all image conversion promises to resolve
       await Promise.all(imageConversionPromises);
-  
+
       const response = await axios.put(
         `${process.env.REACT_APP_BASE_URL}/admin/product/${id}`,
         formData,
@@ -219,7 +228,6 @@ const EditProduct = () => {
       toast.error("Failed to update product");
     }
   };
-  
 
   return (
     <>
@@ -313,6 +321,42 @@ const EditProduct = () => {
           </select>
 
           <div>
+            <div className="toggle-group">
+              <label className="toggle-label">Is Verified:</label>
+              <label className="switch">
+                <input
+                  type="checkbox"
+                  checked={product.isVerified === true}
+                  onChange={() => handleToggle("isVerified")}
+                />
+                <span className="slider round"></span>
+              </label>
+            </div>
+            <div className="toggle-group">
+              <label className="toggle-label">Best Seller:</label>
+              <label className="switch">
+                <input
+                  type="checkbox"
+                  checked={product.bestSeller}
+                  onChange={() => handleToggle("bestSeller")}
+                />
+                <span className="slider round"></span>
+              </label>
+            </div>
+            <div className="toggle-group">
+              <label className="toggle-label">Featured:</label>
+              <label className="switch">
+                <input
+                  type="checkbox"
+                  checked={product.featured}
+                  onChange={() => handleToggle("featured")}
+                />
+                <span className="slider round"></span>
+              </label>
+            </div>
+          </div>
+
+          <div>
             {product.productImages.map((image, index) => (
               <div key={index} className="image-item">
                 <label>Image {index + 1}</label>
@@ -374,7 +418,25 @@ const EditProduct = () => {
               </div>
             )}
           </div>
-          <button type="submit" style={{ marginTop: "2%" }}>
+          <button
+            className="submitbutton"
+            type="submit"
+            style={{
+              marginTop: "2%",
+              width: "30%",
+              marginLeft: "35%", // Adjust the left margin as needed
+              padding: "10px 20px",
+              backgroundColor: "#4CAF50",
+              color: "white",
+              border: "none",
+              borderRadius: "5px",
+              cursor: "pointer",
+              fontSize: "16px",
+              fontWeight: "bold",
+              boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+              transition: "0.3s ease",
+            }}
+          >
             Update Product
           </button>
         </form>

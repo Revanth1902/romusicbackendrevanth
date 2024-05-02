@@ -192,25 +192,23 @@ const BrandsManagement = () => {
         </TableContainer>
       )}
       {/* Confirmation Dialog */}
-      <Dialog
-        open={confirmDelete !== null}
-        onClose={() => setConfirmDelete(null)}
-      >
-        <DialogTitle>Confirm Deletion</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Are you sure you want to delete this brand?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleDeleteConfirmed} color="primary">
-            Delete
-          </Button>
-          <Button onClick={() => setConfirmDelete(null)} color="primary">
-            Cancel
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {confirmDelete !== null && (
+          <div className="delete-confirmation-modal">
+            <div className="modal-content">
+              <h2>Confirm Deletion</h2>
+              <p>Are you sure you want to delete this coupon?</p>
+              <div className="delete-confirmation-buttons">
+                <button onClick={handleDeleteConfirmed} >
+                  Delete
+                </button>
+
+                <button  onClick={() => setConfirmDelete(null)}>
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
     </div>
   );
 };

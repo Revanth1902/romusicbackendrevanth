@@ -184,34 +184,25 @@ const CategoryComponent = () => {
       </div>
 
       {/* Confirmation Dialog */}
-      <Dialog
-        open={!!confirmDelete}
-        onClose={() => setConfirmDelete(null)}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        <DialogTitle id="alert-dialog-title">Confirm Deletion</DialogTitle>
-        <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            Are you sure you want to delete this category?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setConfirmDelete(null)} color="primary">
-            Cancel
-          </Button>
-          <Button
-            onClick={() => {
-              deleteCategory(confirmDelete);
-              setConfirmDelete(null);
-            }}
-            color="secondary"
-            autoFocus
-          >
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {!!confirmDelete && (
+        <div className="delete-confirmation-modal">
+          <div className="modal-content">
+            <h2>Confirm Deletion</h2>
+            <p>Are you sure you want to delete this category?</p>
+            <div className="delete-confirmation-buttons">
+              <button
+                 onClick={() => {
+                  deleteCategory(confirmDelete);
+                  setConfirmDelete(null);
+                }}
+              >
+                Delete
+              </button>
+              <button onClick={() => setConfirmDelete(null)}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
