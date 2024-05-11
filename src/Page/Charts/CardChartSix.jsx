@@ -5,37 +5,52 @@ import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
-import React from "react";
-import { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Cookies from "js-cookie";
 
 const CardChartSix = () => {
-  const [time, setTime] = React.useState("");
-  const [data, setData] = React.useState(null);
+  const [time, setTime] = useState("");
+  const [data, setData] = useState(null);
+  const [pendingCount, setPendingCount] = useState(0);
+  const [cancelledCount, setCancelledCount] = useState(0);
+  const [confirmedCount, setConfirmedCount] = useState(0);
+  const [deliveredCount, setDeliveredCount] = useState(0);
+
   const handleChange = (event) => {
     setTime(event.target.value);
   };
+
   const fetchData = async () => {
     try {
-      const token = Cookies.get("token"); // Assuming cookies is imported and set up properly
-      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/order/getOrderByStatus`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          // Add other headers if needed
-        },
-      });
+      const token = Cookies.get("token");
+      const response = await fetch(
+        `${process.env.REACT_APP_BASE_URL}/order/getOrderByStatus`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       const jsonData = await response.json();
       setData(jsonData);
+
+      // Calculate counts
+      if (jsonData && Array.isArray(jsonData.data)) {
+        const orders = jsonData.data;
+        setPendingCount(orders.filter((order) => order.status === "Processing").length);
+        setCancelledCount(orders.filter((order) => order.status === "Cancelled").length);
+        setConfirmedCount(orders.filter((order) => order.status === "Shipped").length);
+        setDeliveredCount(orders.filter((order) => order.status === "Delivered").length);
+      }
     } catch (error) {
       console.error("Error fetching data:", error);
     }
   };
-  
-
 
   useEffect(() => {
     fetchData();
   }, []);
+
   return (
     <>
       <div className="PieChartOne01">
@@ -76,7 +91,6 @@ const CardChartSix = () => {
           style={{
             display: "flex",
             flexWrap: "wrap",
-            // flexDirection: "wrap",
             justifyContent: "space-between",
             margin: "10px 0",
           }}
@@ -95,7 +109,7 @@ const CardChartSix = () => {
             }}
           >
             <Typography variant="h6" sx={{ color: "orange", fontSize: "15px" }}>
-            {data && data.count}
+              {data && data.data.length}
             </Typography>
             <Typography
               variant="h6"
@@ -120,7 +134,7 @@ const CardChartSix = () => {
             }}
           >
             <Typography variant="h6" sx={{ color: "orange", fontSize: "15px" }}>
-              40
+              {pendingCount}
             </Typography>
             <Typography
               variant="h6"
@@ -145,7 +159,7 @@ const CardChartSix = () => {
             }}
           >
             <Typography variant="h6" sx={{ color: "orange", fontSize: "15px" }}>
-              120
+              {confirmedCount}
             </Typography>
             <Typography
               variant="h6"
@@ -170,57 +184,7 @@ const CardChartSix = () => {
             }}
           >
             <Typography variant="h6" sx={{ color: "orange", fontSize: "15px" }}>
-              60
-            </Typography>
-            <Typography
-              variant="h6"
-              sx={{
-                fontSize: "15px",
-              }}
-            >
-              In packing
-            </Typography>
-          </Box>
-          <Box
-            sx={{
-              display: "flex",
-              width: "45%",
-              paddingTop: "10px",
-              paddingBottom: "10px",
-              marginTop: "10px",
-              marginBottom: "10px",
-              justifyContent: "space-evenly",
-              boxShadow:
-                "rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px;",
-            }}
-          >
-            <Typography variant="h6" sx={{ color: "orange", fontSize: "15px" }}>
-              140
-            </Typography>
-            <Typography
-              variant="h6"
-              sx={{
-                fontSize: "15px",
-              }}
-            >
-              Dispatched
-            </Typography>
-          </Box>
-          <Box
-            sx={{
-              display: "flex",
-              width: "45%",
-              marginTop: "10px",
-              marginBottom: "10px",
-              paddingTop: "10px",
-              paddingBottom: "10px",
-              justifyContent: "space-evenly",
-              boxShadow:
-                "rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px;",
-            }}
-          >
-            <Typography variant="h6" sx={{ color: "orange", fontSize: "15px" }}>
-              100
+              {deliveredCount}
             </Typography>
             <Typography
               variant="h6"
@@ -231,14 +195,13 @@ const CardChartSix = () => {
               Delivered
             </Typography>
           </Box>
-
           <Box
             sx={{
               display: "flex",
               width: "45%",
-              marginTop: "10px",
               paddingTop: "10px",
               paddingBottom: "10px",
+              marginTop: "10px",
               marginBottom: "10px",
               justifyContent: "space-evenly",
               boxShadow:
@@ -246,7 +209,7 @@ const CardChartSix = () => {
             }}
           >
             <Typography variant="h6" sx={{ color: "orange", fontSize: "15px" }}>
-              160
+              {cancelledCount}
             </Typography>
             <Typography
               variant="h6"
@@ -255,52 +218,6 @@ const CardChartSix = () => {
               }}
             >
               Cancelled
-            </Typography>
-          </Box>
-          <Box
-            sx={{
-              display: "flex",
-              width: "45%",
-              marginTop: "10px",
-              paddingTop: "10px",
-              paddingBottom: "10px",
-              marginBottom: "10px",
-              justifyContent: "space-evenly",
-              boxShadow:
-                "rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px;",
-            }}
-          >
-            <Typography variant="h6" sx={{ color: "orange", fontSize: "15px" }}>
-              160
-            </Typography>
-            <Typography
-              variant="h6"
-              sx={{
-                fontSize: "15px",
-              }}
-            >
-              Checkout
-            </Typography>
-          </Box>
-
-          <Box
-            sx={{
-              display: "flex",
-              width: "45%",
-              marginTop: "10px",
-              paddingTop: "10px",
-              paddingBottom: "10px",
-              marginBottom: "10px",
-              justifyContent: "space-evenly",
-              boxShadow:
-                "rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px;",
-            }}
-          >
-            <Typography variant="h6" sx={{ color: "orange", fontSize: "15px" }}>
-              110
-            </Typography>
-            <Typography variant="h6" sx={{ fontSize: "15px" }}>
-              Cancel Request
             </Typography>
           </Box>
         </div>

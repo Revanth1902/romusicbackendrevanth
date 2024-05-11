@@ -33,52 +33,22 @@ import {
   DialogTitle,
 } from "@mui/material";
 import { ToastContainer } from "react-toastify";
-
 export default function OrderManagement() {
   const navigate = useNavigate();
   const [cookies, setCookie] = useCookies(["token"]);
   const [orders, setOrders] = useState([]);
-  const [time, setTime] = React.useState("");
-  const [open, openchange] = React.useState(false);
-  useEffect(() => {
-    const token = cookies.token;
-
-    if (!token) {
-      navigate("/loginadmin");
-    } else {
-      setTokenAvailable(true);
-    }
-  }, [cookies, navigate]);
-  const handleChange = (event) => {
-    setTime(event.target.value);
-  };
-
-  const functionopenpopup = () => {
-    openchange(true);
-  };
-
-  const closepopup = () => {
-    openchange(false);
-  };
-  const [tokenAvailable, setTokenAvailable] = useState(false);
 
   useEffect(() => {
-    const token = cookies.token;
-
-    if (!token) {
-      navigate("/loginadmin");
-    } else {
-      setTokenAvailable(true);
-    }
-  }, [cookies, navigate]);
-
-  const fetchData = async () => {
     const token = cookies.token;
     if (!token) {
       navigate("/loginadmin");
       return;
     }
+    fetchData();
+  }, [cookies, navigate]);
 
+  const fetchData = async () => {
+    const token = cookies.token;
     try {
       const response = await fetch(
         `${process.env.REACT_APP_BASE_URL}/orders/all`,
@@ -88,11 +58,9 @@ export default function OrderManagement() {
           },
         }
       );
-
       if (!response.ok) {
         throw new Error("Failed to fetch data");
       }
-
       const data = await response.json();
       if (data.success && data.orders) {
         setOrders(data.orders);
@@ -104,7 +72,6 @@ export default function OrderManagement() {
 
   const handleDownloadExcel = () => {
     const workbook = XLSX.utils.book_new();
-
     const ordersData = orders.map((order, index) => {
       const orderData = {
         User: order.user || "undefined",
@@ -115,8 +82,6 @@ export default function OrderManagement() {
         Status: order.status,
         "Shipping Address": `${order.shippingInfo.address}, ${order.shippingInfo.city}, ${order.shippingInfo.state}, ${order.shippingInfo.country}, ${order.shippingInfo.pinCode}`,
       };
-
-      // Adding order items
       order.orderItems.forEach((item, itemIndex) => {
         orderData[`Order Item ${itemIndex + 1} - Item Name`] = item.name;
         orderData[`Order Item ${itemIndex + 1} - Item Price`] = item.price;
@@ -127,15 +92,12 @@ export default function OrderManagement() {
         orderData[`Order Item ${itemIndex + 1} - Item Product ID`] =
           item.productId;
       });
-
       return orderData;
     });
-
     const worksheet = XLSX.utils.json_to_sheet(ordersData, {
-      header: Object.keys(ordersData[0]), // Use the header from the first order
+      header: Object.keys(ordersData[0]),
     });
     XLSX.utils.book_append_sheet(workbook, worksheet, "Orders");
-
     const excelBuffer = XLSX.write(workbook, {
       bookType: "xlsx",
       type: "array",
@@ -147,9 +109,6 @@ export default function OrderManagement() {
   const countOrdersByStatus = (status) => {
     return orders.filter((order) => order.status === status).length;
   };
-  useEffect(() => {
-    fetchData();
-  }, []);
   return (
     <Box sx={{ display: "flex" }}>
       <SideBar />
@@ -197,26 +156,6 @@ export default function OrderManagement() {
                   borderRadius: "10px",
                 }}
               />
-              <FormControl
-                sx={{ m: 1, minWidth: 120, alignSelf: "flex-start" }}
-                size="small"
-              >
-                <InputLabel id="demo-select-small-label">Today</InputLabel>
-                <Select
-                  labelId="demo-select-small-label"
-                  id="demo-select-small"
-                  value={time}
-                  label="Time"
-                  onChange={handleChange}
-                >
-                  <MenuItem value="">
-                    <em>None</em>
-                  </MenuItem>
-                  <MenuItem value={7}>Weekly</MenuItem>
-                  <MenuItem value={30}>Monthly</MenuItem>
-                  <MenuItem value={365}>Yearly</MenuItem>
-                </Select>
-              </FormControl>
             </Box>
             <Box
               sx={{
@@ -237,7 +176,7 @@ export default function OrderManagement() {
                 Pending
                 <br />
                 <Typography paragraph style={{ fontWeight: "800" }}>
-                  {countOrdersByStatus("Pending")}
+                  {countOrdersByStatus("Processing")}
                 </Typography>
               </Typography>
 
@@ -268,26 +207,6 @@ export default function OrderManagement() {
                   borderRadius: "10px",
                 }}
               />
-              <FormControl
-                sx={{ m: 1, minWidth: 120, alignSelf: "flex-start" }}
-                size="small"
-              >
-                <InputLabel id="demo-select-small-label">Today</InputLabel>
-                <Select
-                  labelId="demo-select-small-label"
-                  id="demo-select-small"
-                  value={time}
-                  label="Time"
-                  onChange={handleChange}
-                >
-                  <MenuItem value="">
-                    <em>None</em>
-                  </MenuItem>
-                  <MenuItem value={7}>Weekly</MenuItem>
-                  <MenuItem value={30}>Monthly</MenuItem>
-                  <MenuItem value={365}>Yearly</MenuItem>
-                </Select>
-              </FormControl>
             </Box>
             <Box
               sx={{
@@ -297,47 +216,46 @@ export default function OrderManagement() {
               }}
             >
               <Typography variant="h6" sx={{ fontSize: "15px" }}>
-    Cancelled
-    <br />
-    <Typography paragraph style={{ fontWeight: "800" }}>
-        {countOrdersByStatus("Cancelled")}
-        <span
-            style={{
-                color: "orange",
-                fontSize: "12px",
-                fontWeight: "200",
-            }}
-        >
-            {` -${Math.round((countOrdersByStatus("Cancelled") / orders.length) * 100)}%`}
-        </span>
-    </Typography>
-</Typography>
-
+                Cancelled
+                <br />
+                <Typography paragraph style={{ fontWeight: "800" }}>
+                  {countOrdersByStatus("Cancelled")}
+                  <span
+                    style={{
+                      color: "orange",
+                      fontSize: "12px",
+                      fontWeight: "200",
+                    }}
+                  >
+                    {` -${Math.round(
+                      (countOrdersByStatus("Cancelled") / orders.length) * 100
+                    )}%`}
+                  </span>
+                </Typography>
+              </Typography>
 
               <Typography variant="h6" sx={{ fontSize: "15px" }}>
                 Returned
                 <br />
                 <Typography paragraph style={{ fontWeight: "800" }}>
-                {countOrdersByStatus("Returned")}
+                  {countOrdersByStatus("Returned")}
                 </Typography>
               </Typography>
 
               <Typography variant="h6" sx={{ fontSize: "15px" }}>
-                Damaged
+                Confirmed
                 <br />
                 <Typography paragraph style={{ fontWeight: "800" }}>
-                {countOrdersByStatus("Damaged")}
+                  {countOrdersByStatus("Shipped")}
                 </Typography>
               </Typography>
             </Box>
           </div>
-
-         
         </Box>
 
         <OderManagementTable />
       </Box>
-      <ToastContainer/>
+      <ToastContainer />
     </Box>
   );
 }
