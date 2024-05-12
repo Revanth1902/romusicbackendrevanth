@@ -37,7 +37,7 @@ const UserDashboard = () => {
     <div style={styles.container}>
       <header style={styles.header}>
         <img src="/imageinlogo.jpg" alt="Logo" style={styles.logo} />
-        <h1 style={styles.heading}>Popular Beats</h1>
+        <h1 style={styles.heading}>Popular Sound Tracks</h1>
       </header>
       <main style={styles.main}>
         <div style={styles.songList}>
@@ -49,7 +49,17 @@ const UserDashboard = () => {
                 onClick={() => handleSongClick(song)}
                 style={styles.li}
               >
-                {song.name}
+                <img
+                  src={song.imageUrl ? song.imageUrl : "/imageinlogo.jpg"}
+                  alt={song.imageUrl ? "Song Image" : "Default Image"}
+                  style={{
+                    width: "50px",
+                    height: "50px",
+                    borderRadius: "10px",
+                    marginRight: "10px",
+                  }}
+                />
+                <span style={styles.songName}>{song.name}</span>
               </li>
             ))}
           </ul>
@@ -69,7 +79,7 @@ const UserDashboard = () => {
               <h3 style={styles.popupTitle}>{selectedSong.name}</h3>
 
               <p style={styles.popupDescription}>{selectedSong.description}</p>
-             
+
               <button style={styles.button} onClick={handleDownload}>
                 Download
               </button>
@@ -95,8 +105,8 @@ const styles = {
     fontFamily: "Arial, sans-serif",
   },
   header: {
-    backgroundColor: "#007bff",
-    color: "#fff",
+    backgroundColor: "#000000",
+    color: "#58FAFA",
     padding: "20px",
     textAlign: "center",
     display: "flex",
@@ -124,11 +134,14 @@ const styles = {
     padding: "0",
   },
   li: {
+    color: "#FFCB46",
     padding: "10px",
     border: "1px solid #ccc",
     borderRadius: "5px",
     marginBottom: "5px",
     cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
   },
   popup: {
     position: "fixed",
@@ -175,6 +188,11 @@ const styles = {
   },
   footerText: {
     margin: "0",
+  },
+
+  songName: {
+    fontSize: "16px",
+    fontWeight: "bold",
   },
 };
 
