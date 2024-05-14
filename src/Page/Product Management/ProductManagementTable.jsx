@@ -24,6 +24,8 @@ import DialogTitle from "@mui/material/DialogTitle";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import CancelIcon from "@mui/icons-material/Cancel";
 
 const ProductList = () => {
   const [products, setProducts] = useState([]);
@@ -139,13 +141,11 @@ const ProductList = () => {
   const sortedProducts = stableSort(products, getComparator(order, orderBy));
 
   // Function to handle search
-  // Function to handle search
   const handleSearch = (e) => {
     const query = e.target.value.toLowerCase();
     setSearchQuery(query);
   };
 
-  // // Filter products based on search query
   // Filter products based on search query
   const filteredProducts = sortedProducts.filter((product) => {
     // Convert each field to string and lowercase for comparison
@@ -248,6 +248,7 @@ const ProductList = () => {
                   </TableSortLabel>
                 </TableCell>
                 <TableCell>Stock</TableCell>
+                <TableCell>Status</TableCell>
                 <TableCell>Actions</TableCell>
               </TableRow>
             </TableHead>
@@ -265,7 +266,15 @@ const ProductList = () => {
                   </TableCell>
                   <TableCell>{product.brand.toUpperCase()}</TableCell>
                   <TableCell>₹ {product.price}</TableCell>
+
                   <TableCell>{product.stock}</TableCell>
+                  <TableCell>
+                    {product.isVerified === "true" ? (
+                      <CheckCircleIcon style={{ color: "green" }} />
+                    ) : (
+                      <CancelIcon style={{ color: "red" }} />
+                    )}
+                  </TableCell>
 
                   <TableCell>
                     <IconButton

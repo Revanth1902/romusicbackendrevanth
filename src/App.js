@@ -17,7 +17,7 @@ import StaffManagement from "./Page/StaffManagement/Staffmanagement";
 import { ToastContainer } from "react-toastify";
 import SubscriptionManagement from "./Page/Subscrption/subscription";
 import VendorManagement from "./Page/Vendormanagement/vendor";
-
+import GoogleProductTaxonomy from "./Page/Massimport";
 // Function to check if the token exists in cookies
 const getTokenFromCookies = () => {
   // Implement logic to get token from cookies and return it
@@ -65,6 +65,7 @@ export default function App() {
             path="/brandmanagement"
             element={<ProtectedRoute element={<BrandsManagement />} />}
           />
+          <Route path="/massimport" element={<GoogleProductTaxonomy />}/>
           <Route
             path="/couponcodes"
             element={<ProtectedRoute element={<Coupons />} />}
@@ -105,7 +106,6 @@ export default function App() {
             element={<ProtectedRoute element={<VendorManagement />} />}
           />
         </Routes>
-      
       </BrowserRouter>
     </>
   );

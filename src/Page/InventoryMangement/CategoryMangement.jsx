@@ -5,25 +5,25 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import SideBar from "../../Component/SideBar";
 import "./CategoryComponent.css"; // Import CSS file
-import DeleteIcon from "@mui/icons-material/Delete";
-import IconButton from "@mui/material/IconButton";
-import { ArrowUpward, ArrowDownward } from "@mui/icons-material";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  CircularProgress,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-  DialogActions,
-  Button,
-} from "@mui/material";
+// import DeleteIcon from "@mui/icons-material/Delete";
+// import IconButton from "@mui/material/IconButton";
+// import { ArrowUpward, ArrowDownward } from "@mui/icons-material";
+// import {
+//   Table,
+//   TableBody,
+//   TableCell,
+//   TableContainer,
+//   TableHead,
+//   TableRow,
+//   Paper,
+//   CircularProgress,
+//   Dialog,
+//   DialogTitle,
+//   DialogContent,
+//   DialogContentText,
+//   DialogActions,
+//   Button,
+// } from "@mui/material";
 
 const CategoryComponent = () => {
   const [categories, setCategories] = useState([]);
@@ -84,41 +84,41 @@ const CategoryComponent = () => {
     }
   };
 
-  const deleteCategory = async (categoryId) => {
-    try {
-      const token = Cookies.get("token");
-      await axios.delete(
-        `${process.env.REACT_APP_BASE_URL}/admin/category/${categoryId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      fetchCategories();
-      toast.success("Category deleted successfully!");
-    } catch (error) {
-      console.error("Error deleting category:", error);
-      toast.error("Error deleting category");
-    }
-  };
+  // const deleteCategory = async (categoryId) => {
+  //   try {
+  //     const token = Cookies.get("token");
+  //     await axios.delete(
+  //       `${process.env.REACT_APP_BASE_URL}/admin/category/${categoryId}`,
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       }
+  //     );
+  //     fetchCategories();
+  //     toast.success("Category deleted successfully!");
+  //   } catch (error) {
+  //     console.error("Error deleting category:", error);
+  //     toast.error("Error deleting category");
+  //   }
+  // };
 
-  const handleSort = (property) => {
-    const isAsc = orderBy === property && order === "asc";
-    setOrder(isAsc ? "desc" : "asc");
-    setOrderBy(property);
-  };
+  // const handleSort = (property) => {
+  //   const isAsc = orderBy === property && order === "asc";
+  //   setOrder(isAsc ? "desc" : "asc");
+  //   setOrderBy(property);
+  // };
 
-  const sortedCategories = categories.slice().sort((a, b) => {
-    const isAsc = order === "asc";
-    if (a[orderBy] < b[orderBy]) {
-      return isAsc ? -1 : 1;
-    }
-    if (a[orderBy] > b[orderBy]) {
-      return isAsc ? 1 : -1;
-    }
-    return 0;
-  });
+  // const sortedCategories = categories.slice().sort((a, b) => {
+  //   const isAsc = order === "asc";
+  //   if (a[orderBy] < b[orderBy]) {
+  //     return isAsc ? -1 : 1;
+  //   }
+  //   if (a[orderBy] > b[orderBy]) {
+  //     return isAsc ? 1 : -1;
+  //   }
+  //   return 0;
+  // });
 
   return (
     <div className="category-container">
@@ -133,7 +133,7 @@ const CategoryComponent = () => {
         />
         <button onClick={createCategory}>Create</button>
       </div>
-      <div className="categories-container">
+      {/* <div className="categories-container">
         <h2 onClick={() => handleSort("categoryName")}>
           Categories{" "}
           {orderBy === "categoryName" ? (
@@ -181,10 +181,10 @@ const CategoryComponent = () => {
             </TableBody>
           </Table>
         </TableContainer>
-      </div>
+      </div> */}
 
       {/* Confirmation Dialog */}
-      {!!confirmDelete && (
+      {/* {!!confirmDelete && (
         <div className="delete-confirmation-modal">
           <div className="modal-content">
             <h2>Confirm Deletion</h2>
@@ -202,7 +202,7 @@ const CategoryComponent = () => {
             </div>
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 };
