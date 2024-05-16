@@ -3,38 +3,40 @@ import axios from "axios";
 import Cookies from "js-cookie";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  TextField,
+  Button,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  IconButton,
+  Box,
+} from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
 import SideBar from "../../Component/SideBar";
-import "./CategoryComponent.css"; // Import CSS file
-// import DeleteIcon from "@mui/icons-material/Delete";
-// import IconButton from "@mui/material/IconButton";
-// import { ArrowUpward, ArrowDownward } from "@mui/icons-material";
-// import {
-//   Table,
-//   TableBody,
-//   TableCell,
-//   TableContainer,
-//   TableHead,
-//   TableRow,
-//   Paper,
-//   CircularProgress,
-//   Dialog,
-//   DialogTitle,
-//   DialogContent,
-//   DialogContentText,
-//   DialogActions,
-//   Button,
-// } from "@mui/material";
 
 const CategoryComponent = () => {
+  const [newSubcategoryName, setNewSubcategoryName] = useState("");
   const [categories, setCategories] = useState([]);
   const [newCategoryName, setNewCategoryName] = useState("");
-  const [order, setOrder] = useState("asc");
-  const [orderBy, setOrderBy] = useState("categoryName");
+  const [selectedParentCategory, setSelectedParentCategory] = useState("");
+  const [image, setImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null); // State to store image preview
   const [loading, setLoading] = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState(null);
+  const [subcategories, setSubcategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState(""); // State to store selected category ID
 
   useEffect(() => {
     fetchCategories();
+    fetchSubcategories();
   }, []);
 
   const fetchCategories = async () => {
@@ -57,26 +59,62 @@ const CategoryComponent = () => {
     }
   };
 
-  const handleNewCategoryChange = (e) => {
-    setNewCategoryName(e.target.value);
-  };
-
-  const createCategory = async () => {
+  const fetchSubcategories = async () => {
     try {
       const token = Cookies.get("token");
-      await axios.post(
-        `${process.env.REACT_APP_BASE_URL}/admin/category/new`,
-        {
-          categoryName: newCategoryName,
-        },
+      const response = await axios.get(
+        `${process.env.REACT_APP_BASE_URL}/admin/getAllSubCategories`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
+      setSubcategories(response.data.subcategories);
+    } catch (error) {
+      console.error("Error fetching subcategories:", error);
+      setSubcategories([]);
+    }
+  };
+
+  const handleNewCategoryChange = (e) => {
+    setNewCategoryName(e.target.value);
+  };
+
+  // Update handleNewSubcategoryChange to set newSubcategoryName state
+  const handleNewSubcategoryChange = (e) => {
+    setNewSubcategoryName(e.target.value);
+  };
+
+  const handleImageChange = (e) => {
+    setImage(e.target.files[0]);
+    setImagePreview(URL.createObjectURL(e.target.files[0])); // Set image preview
+  };
+
+  const handleCategoryChange = (e) => {
+    setSelectedCategory(e.target.value);
+  };
+
+  const createCategory = async () => {
+    try {
+      const token = Cookies.get("token");
+      const formData = new FormData();
+      formData.append("categoryName", newCategoryName);
+      formData.append("image", image);
+      await axios.post(
+        `${process.env.REACT_APP_BASE_URL}/admin/category/new`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
       fetchCategories();
       setNewCategoryName("");
+      setImage(null);
+      setImagePreview(null);
       toast.success("Category created successfully!");
     } catch (error) {
       console.error("Error creating category:", error);
@@ -84,126 +122,192 @@ const CategoryComponent = () => {
     }
   };
 
-  // const deleteCategory = async (categoryId) => {
-  //   try {
-  //     const token = Cookies.get("token");
-  //     await axios.delete(
-  //       `${process.env.REACT_APP_BASE_URL}/admin/category/${categoryId}`,
-  //       {
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //       }
-  //     );
-  //     fetchCategories();
-  //     toast.success("Category deleted successfully!");
-  //   } catch (error) {
-  //     console.error("Error deleting category:", error);
-  //     toast.error("Error deleting category");
-  //   }
-  // };
+  const createSubcategory = async () => {
+    try {
+      const token = Cookies.get("token");
+      await axios.post(
+        `${process.env.REACT_APP_BASE_URL}/admin/subCategory/new`,
+        {
+          subCategoryName: newSubcategoryName,
+          categoryId: selectedCategory,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      fetchSubcategories();
+      setNewCategoryName("");
+      setSelectedCategory("");
+      toast.success("Subcategory created successfully!");
+    } catch (error) {
+      console.error("Error creating subcategory:", error);
+      toast.error("Error creating subcategory");
+    }
+  };
 
-  // const handleSort = (property) => {
-  //   const isAsc = orderBy === property && order === "asc";
-  //   setOrder(isAsc ? "desc" : "asc");
-  //   setOrderBy(property);
-  // };
+  const deleteCategory = async (categoryId) => {
+    try {
+      const token = Cookies.get("token");
+      await axios.delete(
+        `${process.env.REACT_APP_BASE_URL}/admin/category/${categoryId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      fetchCategories();
+      toast.success("Category deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting category:", error);
+      toast.error("Error deleting category");
+    }
+  };
 
-  // const sortedCategories = categories.slice().sort((a, b) => {
-  //   const isAsc = order === "asc";
-  //   if (a[orderBy] < b[orderBy]) {
-  //     return isAsc ? -1 : 1;
-  //   }
-  //   if (a[orderBy] > b[orderBy]) {
-  //     return isAsc ? 1 : -1;
-  //   }
-  //   return 0;
-  // });
+  const deleteSubcategory = async (subcategoryId) => {
+    try {
+      const token = Cookies.get("token");
+      await axios.delete(
+        `${process.env.REACT_APP_BASE_URL}/admin/subCategory/${subcategoryId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      fetchSubcategories();
+      toast.success("Subcategory deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting subcategory:", error);
+      toast.error("Error deleting subcategory");
+    }
+  };
+
+  const renderCategoriesWithSubcategories = () => {
+    return categories.map((category) => {
+      const categorySubcategories = subcategories.filter(
+        (subcategory) => subcategory.categoryId === category._id
+      );
+
+      return (
+        <div key={category._id}>
+          <h3>{category.categoryName}</h3>
+          {categorySubcategories.length > 0 ? (
+            <ul>
+              {categorySubcategories.map((subcategory) => (
+                <li key={subcategory._id}>{subcategory.subCategoryName}</li>
+              ))}
+            </ul>
+          ) : (
+            <p>No subcategories</p>
+          )}
+        </div>
+      );
+    });
+  };
 
   return (
-    <div className="category-container">
+    <Box sx={{ display: "flex" }}>
       <ToastContainer />
       <SideBar />
-      <div className="create-category">
-        <h3>Create New Category</h3>
-        <input
-          type="text"
-          value={newCategoryName}
-          onChange={handleNewCategoryChange}
-        />
-        <button onClick={createCategory}>Create</button>
-      </div>
-      {/* <div className="categories-container">
-        <h2 onClick={() => handleSort("categoryName")}>
-          Categories{" "}
-          {orderBy === "categoryName" ? (
-            order === "asc" ? (
-              <ArrowUpward />
-            ) : (
-              <ArrowDownward />
-            )
-          ) : null}
-        </h2>
-        <TableContainer component={Paper} style={{ marginBottom: "2%" }}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Category Name</TableCell>
-                <TableCell>Action</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {loading ? (
-                <TableRow>
-                  <TableCell colSpan={2} align="center">
-                    <CircularProgress />
-                  </TableCell>
-                </TableRow>
-              ) : (
-                sortedCategories.map((category) => (
-                  <TableRow key={category._id}>
-                    <TableCell>
-                      {category.categoryName.charAt(0).toUpperCase() +
-                        category.categoryName.slice(1)}
-                    </TableCell>
-
-                    <TableCell>
-                      <IconButton
-                        color="secondary"
-                        onClick={() => setConfirmDelete(category._id)}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </div> */}
-
-      {/* Confirmation Dialog */}
-      {/* {!!confirmDelete && (
-        <div className="delete-confirmation-modal">
-          <div className="modal-content">
-            <h2>Confirm Deletion</h2>
-            <p>Are you sure you want to delete this category?</p>
-            <div className="delete-confirmation-buttons">
-              <button
-                 onClick={() => {
-                  deleteCategory(confirmDelete);
-                  setConfirmDelete(null);
-                }}
-              >
-                Delete
-              </button>
-              <button onClick={() => setConfirmDelete(null)}>Cancel</button>
-            </div>
-          </div>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          width: "100%",
+        }}
+      >
+        <div>
+          <h3>Create New Category</h3>
+          <TextField
+            type="text"
+            value={newCategoryName}
+            onChange={handleNewCategoryChange}
+            label="Category Name"
+            variant="outlined"
+            fullWidth
+            margin="normal"
+          />
+          <input
+            accept="image/*"
+            id="category-image"
+            type="file"
+            style={{ display: "none" }}
+            onChange={handleImageChange}
+          />
+          <label htmlFor="category-image">
+            <Button
+              variant="contained"
+              component="span"
+              color="primary"
+              sx={{ background: "orange", marginTop: "10px" }}
+            >
+              Upload Image
+            </Button>
+          </label>
+          {imagePreview && (
+            <img
+              style={{ width: "200px", height: "200px" }}
+              src={imagePreview}
+              alt="Preview"
+            />
+          )}
+          {/* Image preview */}
+          <Button
+            variant="contained"
+            color="primary"
+            sx={{ background: "orange", marginTop: "10px" }}
+            onClick={createCategory}
+          >
+            Create Category
+          </Button>
         </div>
-      )} */}
-    </div>
+        <div>
+          <h3>Create New Subcategory</h3>
+          <FormControl fullWidth variant="outlined" margin="normal">
+            <InputLabel id="category-select-label">Category</InputLabel>
+            <Select
+              labelId="category-select-label"
+              id="category-select"
+              value={selectedCategory}
+              onChange={handleCategoryChange}
+              label="Category"
+            >
+              {categories.map((category) => (
+                <MenuItem key={category._id} value={category._id}>
+                  {category.categoryName}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <TextField
+            type="text"
+            value={newSubcategoryName}
+            onChange={handleNewSubcategoryChange}
+            label="Subcategory Name"
+            variant="outlined"
+            fullWidth
+            margin="normal"
+          />
+          <Button
+            variant="contained"
+            color="primary"
+            sx={{ background: "orange", marginTop: "10px" }}
+            onClick={createSubcategory}
+          >
+            Create Subcategory
+          </Button>
+        </div>
+        <div style={{ width: "80%" }}>
+          <h3>Categories with Subcategories</h3>
+          {renderCategoriesWithSubcategories()}
+        </div>
+      </div>
+    </Box>
   );
 };
 

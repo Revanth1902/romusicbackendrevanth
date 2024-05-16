@@ -162,7 +162,11 @@ export default function EnhancedTable() {
         }
       );
       if (response.data.success) {
-        setOrders(response.data.orders);
+        // Sort orders by creation date in descending order
+        const sortedOrders = response.data.orders.sort((a, b) => {
+          return new Date(b.createdAt) - new Date(a.createdAt);
+        });
+        setOrders(sortedOrders);
       } else {
         setOrders([]);
       }
@@ -173,6 +177,7 @@ export default function EnhancedTable() {
       setLoading(false);
     }
   };
+  
 
   const handleRequestSort = (property) => {
     const isAsc = orderBy === property && order === "asc";
@@ -450,8 +455,8 @@ export default function EnhancedTable() {
                       {orderBy === headCell.id ? (
                         <Box component="span" sx={visuallyHidden}>
                           {order === "desc"
-                            ? "sorted descending"
-                            : "sorted ascending"}
+                            ? "sorted ascending"
+                            : "sorted  descending"}
                         </Box>
                       ) : null}
                     </TableSortLabel>
@@ -533,7 +538,7 @@ export default function EnhancedTable() {
                         >
                           <VisibilityIcon />
                         </IconButton>
-                        <IconButton
+                        {/* <IconButton
                           onClick={() => handleUpdateOrder(order._id)}
                           aria-label="update"
                         >
@@ -544,7 +549,7 @@ export default function EnhancedTable() {
                           aria-label="cancel"
                         >
                           <CancelIcon />
-                        </IconButton>
+                        </IconButton> */}
                       </TableCell>
                     </TableRow>
                   );

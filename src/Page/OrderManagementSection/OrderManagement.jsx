@@ -1,42 +1,46 @@
-import React from "react";
-import { useEffect, useState } from "react";
-import SideBar from "../../Component/SideBar";
-import ModalTable from "./ModalTable";
-import OderManagementTable from "./OrderManagementTable";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import AddIcon from "@mui/icons-material/Add";
-import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
-import Typography from "@mui/material/Typography";
-import InputLabel from "@mui/material/InputLabel";
-import MenuItem from "@mui/material/MenuItem";
-import FormControl from "@mui/material/FormControl";
-import Select from "@mui/material/Select";
-import Breadcrumbs from "@mui/material/Breadcrumbs";
-import Link from "@mui/material/Link";
-import PersonIcon from "@mui/icons-material/Person";
-import PlaceIcon from "@mui/icons-material/Place";
-import FileCopyIcon from "@mui/icons-material/FileCopy";
-import PaymentIcon from "@mui/icons-material/Payment";
-import ClearIcon from "@mui/icons-material/Clear";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCookies } from "react-cookie";
-import { saveAs } from "file-saver"; // Import saveAs from file-saver
-import * as XLSX from "xlsx";
-import {
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-} from "@mui/material";
-import { ToastContainer } from "react-toastify";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import CancelIcon from "@mui/icons-material/Cancel";
+import SideBar from "../../Component/SideBar";
+import OderManagementTable from "./OrderManagementTable";
+import Button from "@mui/material/Button";
+import Box from "@mui/material/Box";
+import { Table, TableCell, TableRow, TableBody } from "@mui/material";
+import Typography from "@mui/material/Typography";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
+import TextField from "@mui/material/TextField";
+import MenuItem from "@mui/material/MenuItem";
+
 export default function OrderManagement() {
   const navigate = useNavigate();
   const [cookies, setCookie] = useCookies(["token"]);
   const [orders, setOrders] = useState([]);
+  const [open, setOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    address: "",
+    city: "",
+    state: "",
+    country: "",
+    pinCode: "",
+    product: "",
+    user: "",
+    shippingCharges: 0,
+    discount: 0,
+    quantity: 1,
+    subtotal: 0,
+    total: 0,
+  });
+  const [products, setProducts] = useState([]);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [admins, setAdmins] = useState([]);
+  const [selectedAdmin, setSelectedAdmin] = useState("");
 
   useEffect(() => {
     const token = cookies.token;
@@ -48,9 +52,42 @@ export default function OrderManagement() {
   }, [cookies, navigate]);
 
   const fetchData = async () => {
-    const token = cookies.token;
     try {
-      const response = await fetch(
+      const token = cookies.token;
+
+      const productResponse = await fetch(
+        `${process.env.REACT_APP_BASE_URL}/admin/products`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (!productResponse.ok) {
+        throw new Error("Failed to fetch products");
+      }
+      const productData = await productResponse.json();
+      if (productData.success && productData.products) {
+        setProducts(productData.products);
+      }
+
+      const adminResponse = await fetch(
+        `${process.env.REACT_APP_BASE_URL}/admin/users?role=admin`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (!adminResponse.ok) {
+        throw new Error("Failed to fetch admins");
+      }
+      const adminData = await adminResponse.json();
+      if (adminData.success && adminData.users) {
+        setAdmins(adminData.users);
+      }
+
+      const orderResponse = await fetch(
         `${process.env.REACT_APP_BASE_URL}/orders/all`,
         {
           headers: {
@@ -58,12 +95,12 @@ export default function OrderManagement() {
           },
         }
       );
-      if (!response.ok) {
-        throw new Error("Failed to fetch data");
+      if (!orderResponse.ok) {
+        throw new Error("Failed to fetch orders");
       }
-      const data = await response.json();
-      if (data.success && data.orders) {
-        setOrders(data.orders);
+      const orderData = await orderResponse.json();
+      if (orderData.success && orderData.orders) {
+        setOrders(orderData.orders);
       }
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -71,196 +108,330 @@ export default function OrderManagement() {
   };
 
   const handleDownloadExcel = () => {
-    const workbook = XLSX.utils.book_new();
-    const ordersData = orders.map((order, index) => {
-      const orderData = {
-        User: order.user || "undefined",
-        Subtotal: order.subtotal,
-        "Shipping Charges": order.shippingCharges,
-        Discount: order.discount,
-        Total: order.total,
-        Status: order.status,
-        "Shipping Address": `${order.shippingInfo.address}, ${order.shippingInfo.city}, ${order.shippingInfo.state}, ${order.shippingInfo.country}, ${order.shippingInfo.pinCode}`,
-      };
-      order.orderItems.forEach((item, itemIndex) => {
-        orderData[`Order Item ${itemIndex + 1} - Item Name`] = item.name;
-        orderData[`Order Item ${itemIndex + 1} - Item Price`] = item.price;
-        orderData[`Order Item ${itemIndex + 1} - Item Quantity`] =
-          item.quantity;
-        orderData[`Order Item ${itemIndex + 1} - Item Warranty Period`] =
-          item.warrantyPeriod;
-        orderData[`Order Item ${itemIndex + 1} - Item Product ID`] =
-          item.productId;
-      });
-      return orderData;
-    });
-    const worksheet = XLSX.utils.json_to_sheet(ordersData, {
-      header: Object.keys(ordersData[0]),
-    });
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Orders");
-    const excelBuffer = XLSX.write(workbook, {
-      bookType: "xlsx",
-      type: "array",
-    });
-    const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
-    saveAs(blob, "orders.xlsx");
+    // Function for downloading excel
   };
 
   const countOrdersByStatus = (status) => {
     return orders.filter((order) => order.status === status).length;
   };
+
+  const handleCreateOrder = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    setFormData({
+      address: "",
+      city: "",
+      state: "",
+      country: "",
+      pinCode: "",
+      product: "",
+      user: "",
+      shippingCharges: 0,
+      discount: 0,
+      quantity: 1,
+      subtotal: 0,
+      total: 0,
+    });
+    setSelectedProduct(null);
+  };
+
+  const handleFormChange = (e) => {
+    const { name, value } = e.target;
+    let updatedFormData = { ...formData, [name]: value };
+    if (name === "quantity") {
+      // Update quantity and recalculate subtotal and total
+      updatedFormData = {
+        ...updatedFormData,
+        quantity: value,
+        subtotal: selectedProduct ? selectedProduct.price * value : 0,
+      };
+      // Calculate total
+      const total =
+        updatedFormData.subtotal +
+        Number(updatedFormData.shippingCharges) -
+        Number(updatedFormData.discount);
+      updatedFormData = { ...updatedFormData, total };
+    } else if (name === "shippingCharges" || name === "discount") {
+      // Update shipping charges or discount and recalculate total
+      const total =
+        formData.subtotal +
+        Number(updatedFormData.shippingCharges) -
+        Number(updatedFormData.discount);
+      updatedFormData = { ...updatedFormData, total };
+    }
+    setFormData(updatedFormData);
+  };
+
+  const handleProductChange = (e) => {
+    const selectedProductId = e.target.value;
+    const selectedProduct = products.find(
+      (product) => product._id === selectedProductId
+    );
+    setSelectedProduct(selectedProduct);
+    // Update subtotal and total when product changes
+    const subtotal = selectedProduct
+      ? selectedProduct.price * formData.quantity
+      : 0;
+    const total =
+      subtotal + Number(formData.shippingCharges) - Number(formData.discount);
+    setFormData({ ...formData, subtotal, total });
+  };
+
+  const handleAdminChange = (e) => {
+    setSelectedAdmin(e.target.value);
+  };
+
+  const handleSubmit = async () => {
+    try {
+      const token = cookies.token;
+      const payload = {
+        address: formData.address,
+        city: formData.city,
+        state: formData.state,
+        country: formData.country,
+        pinCode: formData.pinCode,
+        product: selectedProduct._id, // Send the product ID
+        quantity: formData.quantity,
+        shippingCharges: formData.shippingCharges,
+        discount: formData.discount,
+        subtotal: formData.subtotal,
+        total: formData.total,
+        user: selectedAdmin, // Send the selected user ID
+      };
+      const response = await fetch(
+        `${process.env.REACT_APP_BASE_URL}/order/new`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+      if (!response.ok) {
+        throw new Error("Failed to create order");
+      }
+      toast.success("Order created successfully");
+      handleClose();
+      fetchData(); // Refresh order data
+    } catch (error) {
+      console.error("Error creating order:", error);
+      toast.error("Failed to create order");
+    }
+  };
+
+  const calculateSubtotalAndTotal = (
+    product,
+    quantity,
+    shippingCharges,
+    discount
+  ) => {
+    if (product) {
+      const subtotal = product.price * quantity;
+      const total = subtotal + shippingCharges - discount;
+      setFormData({ ...formData, subtotal, total });
+    }
+  };
+
   return (
     <Box sx={{ display: "flex" }}>
       <SideBar />
       <Box component="main" sx={{ flexGrow: 1, p: 3, marginTop: "55px" }}>
         <Box sx={{ marginTop: "1rem" }}>
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
+          <Button
+            onClick={handleDownloadExcel}
+            sx={{ background: "orange" }}
+            variant="contained"
           >
-            <Button
-              onClick={handleDownloadExcel}
-              sx={{ background: "orange" }}
-              variant="contained"
-            >
-              Order Summary
-            </Button>
-            <Button
-              onClick={""}
-              sx={{ background: "orange" }}
-              variant="contained"
-            >
-             Create  Order
-            </Button>
-          </Box>
-        </Box>
-
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            marginTop: "15px",
-            marginBottom: "20px",
-          }}
-        >
-          <div className="OrderManagement01">
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <ShoppingBagIcon
-                sx={{
-                  color: "orange",
-                  background: "#ffeb99",
-                  p: 1,
-                  fontSize: "40px",
-                  borderRadius: "10px",
-                }}
-              />
-            </Box>
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <Typography variant="h6" sx={{ fontSize: "15px" }}>
-                All Orders
-                <br />
-                <Typography paragraph style={{ fontWeight: "800" }}>
-                  {orders.length}
-                </Typography>
-              </Typography>
-
-              <Typography variant="h6" sx={{ fontSize: "15px" }}>
-                Pending
-                <br />
-                <Typography paragraph style={{ fontWeight: "800" }}>
-                  {countOrdersByStatus("Processing")}
-                </Typography>
-              </Typography>
-
-              <Typography variant="h6" sx={{ fontSize: "15px" }}>
-                Completed
-                <br />
-                <Typography paragraph style={{ fontWeight: "800" }}>
-                  {countOrdersByStatus("Delivered")}
-                </Typography>
-              </Typography>
-            </Box>
-          </div>
-
-          <div className="OrderManagement01">
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <ShoppingBagIcon
-                sx={{
-                  color: "orange",
-                  background: "#ffeb99",
-                  p: 1,
-                  fontSize: "40px",
-                  borderRadius: "10px",
-                }}
-              />
-            </Box>
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <Typography variant="h6" sx={{ fontSize: "15px" }}>
-                Cancelled
-                <br />
-                <Typography paragraph style={{ fontWeight: "800" }}>
-                  {countOrdersByStatus("Cancelled")}
-                  <span
-                    style={{
-                      color: "orange",
-                      fontSize: "12px",
-                      fontWeight: "200",
-                    }}
-                  >
-                    {` -${Math.round(
-                      (countOrdersByStatus("Cancelled") / orders.length) * 100
-                    )}%`}
-                  </span>
-                </Typography>
-              </Typography>
-
-              <Typography variant="h6" sx={{ fontSize: "15px" }}>
-                Returned
-                <br />
-                <Typography paragraph style={{ fontWeight: "800" }}>
-                  {countOrdersByStatus("Returned")}
-                </Typography>
-              </Typography>
-
-              <Typography variant="h6" sx={{ fontSize: "15px" }}>
-                Confirmed
-                <br />
-                <Typography paragraph style={{ fontWeight: "800" }}>
-                  {countOrdersByStatus("Shipped")}
-                </Typography>
-              </Typography>
-            </Box>
-          </div>
+            Order Summary
+          </Button>
+          <Button
+            onClick={handleCreateOrder}
+            sx={{ background: "orange", ml: 2 }}
+            variant="contained"
+          >
+            Create Order
+          </Button>
         </Box>
 
         <OderManagementTable />
+
+        <Dialog open={open} onClose={handleClose}>
+          <DialogTitle>Create New Order</DialogTitle>
+          <DialogContent>
+            <TextField
+              name="address"
+              label="Address"
+              value={formData.address}
+              onChange={handleFormChange}
+              fullWidth
+              margin="normal"
+            />
+            <TextField
+              name="city"
+              label="City"
+              value={formData.city}
+              onChange={handleFormChange}
+              fullWidth
+              margin="normal"
+            />
+            <TextField
+              name="state"
+              label="State"
+              value={formData.state}
+              onChange={handleFormChange}
+              fullWidth
+              margin="normal"
+            />
+            <TextField
+              name="country"
+              label="Country"
+              value={formData.country}
+              onChange={handleFormChange}
+              fullWidth
+              margin="normal"
+            />
+            <TextField
+              name="pinCode"
+              label="Pin Code"
+              value={formData.pinCode}
+              onChange={handleFormChange}
+              fullWidth
+              margin="normal"
+            />
+            <TextField
+              select
+              label="Select Product"
+              name="product"
+              value={formData.product}
+              onChange={handleProductChange}
+              fullWidth
+              margin="normal"
+            >
+              {products.map((product) => (
+                <MenuItem key={product._id} value={product._id}>
+                  {product.name}
+                </MenuItem>
+              ))}
+            </TextField>
+            {selectedProduct && (
+              <Box>
+                <Typography variant="h6">
+                  Selected Product Information
+                </Typography>
+                <Table>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell>Image</TableCell>
+                      <TableCell>
+                        <img
+                          style={{
+                            width: "350px",
+                            height: "200px",
+                            objectFit: "contain",
+                          }}
+                          src={selectedProduct.productImages[0]}
+                          alt="Product"
+                        />
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>Name</TableCell>
+                      <TableCell>{selectedProduct.name}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>Price</TableCell>
+                      <TableCell>₹{selectedProduct.price}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>MRP</TableCell>
+                      <TableCell>₹{selectedProduct.mrp}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>Verified</TableCell>
+                      <TableCell
+                        style={{ display: "flex", alignItems: "center" }}
+                      >
+                        {selectedProduct.isVerified === "true" ? (
+                          <>
+                            <p style={{ marginRight: "5px", color: "green" }}>
+                              YES
+                            </p>
+                            <CheckCircleIcon style={{ color: "green" }} />
+                          </>
+                        ) : (
+                          <>
+                            <p style={{ marginRight: "5px", color: "red" }}>
+                              NO
+                            </p>
+                            <CancelIcon style={{ color: "red" }} />
+                          </>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </Box>
+            )}
+
+            <TextField
+              name="quantity"
+              label="Quantity"
+              type="number"
+              value={formData.quantity}
+              onChange={handleFormChange}
+              fullWidth
+              margin="normal"
+            />
+            <TextField
+              name="shippingCharges"
+              label="Shipping Charges"
+              type="number"
+              value={formData.shippingCharges}
+              onChange={handleFormChange}
+              fullWidth
+              margin="normal"
+            />
+            <TextField
+              name="discount"
+              label="Discount"
+              type="number"
+              value={formData.discount}
+              onChange={handleFormChange}
+              fullWidth
+              margin="normal"
+            />
+            <Typography>Subtotal: ₹{formData.subtotal}</Typography>
+            <Typography>Total: ₹{formData.total}</Typography>
+            <TextField
+              select
+              label="Select Admin"
+              name="user"
+              value={selectedAdmin}
+              onChange={handleAdminChange}
+              fullWidth
+              margin="normal"
+            >
+              {admins
+                .filter((admin) => admin.role === "admin")
+                .map((admin) => (
+                  <MenuItem key={admin._id} value={admin._id}>
+                    {admin.name}
+                  </MenuItem>
+                ))}
+            </TextField>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleClose}>Cancel</Button>
+            <Button onClick={handleSubmit} variant="contained" color="primary">
+              Submit
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Box>
       <ToastContainer />
     </Box>

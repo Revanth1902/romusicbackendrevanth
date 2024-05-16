@@ -34,6 +34,8 @@ const PaymentsManagementnewproduct = () => {
   const navigate = useNavigate();
   const [productName, setProductName] = useState("");
   const [brand, setBrand] = useState("");
+  const [subCategories, setSubCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState("");
   const [category, setCategory] = useState("");
   const [subCategory, setSubCategory] = useState("");
   const [price, setPrice] = useState("");
@@ -42,6 +44,7 @@ const PaymentsManagementnewproduct = () => {
   const [bestSeller, setBestSeller] = useState(false);
   const [featured, setFeatured] = useState(false);
   const [description, setDescription] = useState("");
+  const [selectedCategoryName, setSelectedCategoryName] = useState("");
   const [specification, setSpecification] = useState("");
   const [warrantyPeriod, setWarrantyPeriod] = useState("");
   const [images, setImages] = useState([]); // State variable for selected images
@@ -168,7 +171,7 @@ const PaymentsManagementnewproduct = () => {
       const formData = new FormData();
       formData.append("name", productName);
       formData.append("brand", brand);
-      formData.append("category", category);
+      formData.append("category", selectedCategoryName); 
       formData.append("subCategory", subCategory);
       formData.append("price", price);
       formData.append("stock", stock);
@@ -225,6 +228,39 @@ const PaymentsManagementnewproduct = () => {
     setOpen(false);
     navigate("/productmanagement");
   };
+  useEffect(() => {
+    const fetchSubCategories = async () => {
+      try {
+        if (selectedCategory) {
+          const token = Cookies.get("token");
+          const response = await axios.get(
+            `${process.env.REACT_APP_BASE_URL}/admin/getSubCategoryByCategoryId/${selectedCategory}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+          setSubCategories(response.data.data); // Update to response.data.data
+        }
+      } catch (error) {
+        console.error("Error fetching subcategories:", error);
+        toast.error("Failed to fetch subcategories");
+      }
+    };
+
+    fetchSubCategories();
+  }, [selectedCategory]);
+
+  // Handle category selection
+// Handle category selection
+const handleCategoryChange = (e) => {
+  const categoryId = e.target.value;
+  const selectedCategory = categories.find(category => category._id === categoryId);
+  setSelectedCategory(categoryId); // Update selected category ID
+  setSelectedCategoryName(selectedCategory ? selectedCategory.categoryName : ""); // Update selected category name
+};
+
 
   return (
     <Box sx={{ display: "flex" }}>
@@ -278,25 +314,41 @@ const PaymentsManagementnewproduct = () => {
               <InputLabel id="category-label">Select Category</InputLabel>
               <Select
                 labelId="category-label"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
+                value={selectedCategory}
+                onChange={handleCategoryChange}
                 fullWidth
               >
+                <MenuItem value="">Please select a category</MenuItem>
                 {categories.map((category) => (
-                  <MenuItem key={category._id} value={category.categoryName}>
+                  <MenuItem key={category._id} value={category._id}>
                     {category.categoryName}
                   </MenuItem>
                 ))}
               </Select>
             </FormControl>
-            <TextField
-              label="Sub Category"
-              value={subCategory}
-              onChange={(e) => setSubCategory(e.target.value)}
-              fullWidth
-              margin="normal"
-              sx={{ flex: 1 }}
-            />
+            {/* Subcategory selection */}
+            {selectedCategory && (
+              <FormControl sx={{ flex: 1, marginTop: "0.7%" }}>
+                <InputLabel id="subcategory-label">
+                  Select Subcategory
+                </InputLabel>
+                <Select
+                  labelId="subcategory-label"
+                  value={subCategory}
+                  onChange={(e) => setSubCategory(e.target.value)}
+                  fullWidth
+                >
+                  {subCategories.map((subCategory) => (
+                    <MenuItem
+                      key={subCategory._id}
+                      value={subCategory.subCategoryName}
+                    >
+                      {subCategory.subCategoryName}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            )}
           </Box>
 
           <Box sx={{ display: "flex" }}>
@@ -470,7 +522,7 @@ const PaymentsManagementnewproduct = () => {
           <Button
             variant="contained"
             onClick={handleSubmit}
-            disabled={submitting} 
+            disabled={submitting}
             sx={{ mt: 2 }}
           >
             {submitting ? "Adding..." : "Add Product"}
