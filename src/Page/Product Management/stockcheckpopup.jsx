@@ -43,10 +43,17 @@ const StockCheckPopup = ({ open, handleClose, products }) => {
               {products.map((product) => (
                 <TableRow key={product.id}>
                   <TableCell>{product.name}</TableCell>
-                  <TableCell
-                  
-                  >
-                    <p style={{ backgroundColor: "rgba(255, 0, 0, 0.5)", textAlign:"center" , borderRadius:"10px" }} >{product.stock}</p>
+                  <TableCell colSpan={1}>
+                    <p
+                      style={{
+                        backgroundColor: " #FF578929",
+                        textAlign: "center",
+                        borderRadius: "8px",
+                        padding: "1px 2px",
+                      }}
+                    >
+                      {product.stock} left
+                    </p>
                   </TableCell>
 
                   <TableCell>₹{product.price}</TableCell>
