@@ -332,7 +332,7 @@ const EditProduct = () => {
               <InputLabel id="category-label">Select Category</InputLabel>
               <Select
                 labelId="category-label"
-                value={product.selectedCategory}
+                value={product.category}
                 onChange={handleCategoryChange}
                 fullWidth
               >

@@ -168,7 +168,15 @@ const ProductList = () => {
   });
 
   return (
-    <div className="thethings">
+    <div
+      className="thethings"
+      style={{
+        display: "flex",
+        width: "100%",
+        
+        flexDirection: "column",
+      }}
+    >
       <h2>Product List</h2>
       <div style={{ marginBottom: "20px" }}>
         <input
