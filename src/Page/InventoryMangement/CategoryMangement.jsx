@@ -26,6 +26,8 @@ import SideBar from "../../Component/SideBar";
 const CategoryComponent = () => {
   const [newSubcategoryName, setNewSubcategoryName] = useState("");
   const [categories, setCategories] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+
   const [newCategoryName, setNewCategoryName] = useState("");
   const [selectedParentCategory, setSelectedParentCategory] = useState("");
   const [image, setImage] = useState(null);
@@ -186,28 +188,72 @@ const CategoryComponent = () => {
   };
 
   const renderCategoriesWithSubcategories = () => {
-    return categories.map((category) => {
-      const categorySubcategories = subcategories.filter(
+    const filteredCategoriesList = searchQuery
+      ? categories.filter((category) =>
+          category.categoryName
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase())
+        )
+      : categories;
+    const filteredSubcategoriesList = searchQuery
+      ? subcategories.filter((subcategory) =>
+          subcategory.subCategoryName
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase())
+        )
+      : subcategories;
+
+    return filteredCategoriesList.map((category) => {
+      const categorySubcategories = filteredSubcategoriesList.filter(
         (subcategory) => subcategory.categoryId === category._id
       );
 
       return (
-        <div key={category._id}>
-          <h3>{category.categoryName}</h3>
-          {categorySubcategories.length > 0 ? (
-            <ul>
-              {categorySubcategories.map((subcategory) => (
-                <li key={subcategory._id}>{subcategory.subCategoryName}</li>
-              ))}
-            </ul>
-          ) : (
-            <p>No subcategories</p>
-          )}
-        </div>
+        <React.Fragment key={category._id}>
+          <TableRow>
+            <TableCell >
+              <strong>
+                {category.categoryName.charAt(0).toUpperCase() +
+                  category.categoryName.substring(1)}
+              </strong>
+            </TableCell>
+            <TableCell>
+              {categorySubcategories.length > 0 ? (
+                categorySubcategories.map((subcategory) => (
+                  <div
+                    key={subcategory._id}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    {subcategory.subCategoryName.charAt(0).toUpperCase() +
+                      subcategory.subCategoryName.substring(1)}
+                    <IconButton
+                      onClick={() => deleteSubcategory(subcategory._id)}
+                    >
+                      <DeleteIcon style={{ color: "orange" }} />
+                    </IconButton>
+                  </div>
+                ))
+              ) : (
+                <p>No subcategories</p>
+              )}
+            </TableCell>
+            <TableCell>
+              <IconButton onClick={() => deleteCategory(category._id)}>
+                <DeleteIcon style={{ color: "red" }} />
+              </IconButton>
+            </TableCell>
+          </TableRow>
+        </React.Fragment>
       );
     });
   };
-
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
   return (
     <Box sx={{ display: "flex" }}>
       <ToastContainer />
@@ -302,9 +348,48 @@ const CategoryComponent = () => {
             Create Subcategory
           </Button>
         </div>
-        <div style={{ width: "80%" }}>
-          <h3>Categories with Subcategories</h3>
-          {renderCategoriesWithSubcategories()}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            width: "100%",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              width: "100%",
+            }}
+          >
+            <div style={{ width: "80%", marginTop: 20 }}>
+              <div style={{ marginTop: "20px" }}>
+                <TextField
+                  type="text"
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                  label="Search"
+                  variant="outlined"
+                  fullWidth
+                  margin="normal"
+                  style={{ width: "30%" }}
+                />
+              </div>
+              <h3>Categories with Subcategories</h3>
+              <TableContainer component={Paper}>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Category Name</TableCell>
+                      <TableCell>Subcategory Name</TableCell>
+                      <TableCell>Action</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>{renderCategoriesWithSubcategories()}</TableBody>
+                </Table>
+              </TableContainer>
+            </div>
+          </div>
         </div>
       </div>
     </Box>
