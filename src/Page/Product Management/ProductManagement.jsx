@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import Cookies from "js-cookie";
+import CircularProgress from "@mui/material/CircularProgress";
 import WarningIcon from "@mui/icons-material/Warning";
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
-
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import axios from "axios";
 import { toast } from "react-toastify";
 import StockCheckPopup from "./stockcheckpopup";
@@ -16,18 +16,24 @@ import ListItem from "@mui/material/ListItem";
 import CategorySubcategoryDialog from "./showschemamodel";
 import categoriesAndSubs from "./categoriesandsub.json"; // Import your category and subcategory data
 import { Link } from "react-router-dom";
+
 const ProductManagement = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(false); // State to manage loading state of button
+  const [popupOpen, setPopupOpen] = useState(false);
+
   const showPopupForCategoriesAndSubs = () => {
     setDialogOpen(true);
   };
+
   useEffect(() => {
     fetchProducts();
   }, []);
 
   const fetchProducts = async () => {
     try {
+      setLoading(true); // Set loading state to true when fetching data
       const token = Cookies.get("token");
       const response = await axios.get(
         `${process.env.REACT_APP_BASE_URL}/admin/products`,
@@ -46,12 +52,12 @@ const ProductManagement = () => {
     } catch (error) {
       console.error("Error fetching products:", error);
       toast.error("Failed to fetch products");
+    } finally {
+      setLoading(false); // Set loading state to false after data is fetched
     }
   };
-  const [popupOpen, setPopupOpen] = useState(false);
-
-  // Filter products with stock less than 5
   const lowStockProducts = products.filter((product) => product.stock < 5);
+
   const handleClose = () => {
     setDialogOpen(false);
   };
@@ -101,14 +107,22 @@ const ProductManagement = () => {
               }}
               variant="contained"
               onClick={handleStockCheck}
+              disabled={loading} // Disable button when loading
             >
-              Stock
+             
+             {loading ? (
+                <CircularProgress color="inherit" size={20} />
+              ) : (
+                "Stock"
+              )}
               {lowStockProducts.length > 0 ? (
                 <WarningIcon
                   sx={{ position: "absolute", top: "5px", right: "5px" }}
                 />
               ) : (
-                <CheckCircleOutlineIcon  sx={{ position: "absolute", top: "5px", right: "5px" }}/>
+                <CheckCircleOutlineIcon
+                  sx={{ position: "absolute", top: "5px", right: "5px" }}
+                />
               )}
             </Button>
 
