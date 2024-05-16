@@ -567,9 +567,9 @@ const VendorManagement = () => {
                                 product.name.slice(1)}
                             </TableCell>
 
-                            <TableCell>${product.price}</TableCell>
+                            <TableCell>₹{product.price}</TableCell>
                             <TableCell>{product.stock}</TableCell>
-                            <TableCell>${product.mrp}</TableCell>
+                            <TableCell>₹{product.mrp}</TableCell>
                             <TableCell>
                               {product.isVerified === "true" ? (
                                 <CheckCircleIcon style={{ color: "green" }} />

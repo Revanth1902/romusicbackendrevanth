@@ -48,7 +48,8 @@ const EditProduct = () => {
     warrantyPeriod: "",
     images: [],
   });
-
+  const [subCategories, setSubCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState("");
   const [open, setOpen] = useState(false);
   const [brands, setBrands] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -60,7 +61,6 @@ const EditProduct = () => {
         const token = Cookies.get("token");
         const response = await axios.get(
           `${process.env.REACT_APP_BASE_URL}/product/${id}`,
-
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -71,7 +71,6 @@ const EditProduct = () => {
         setProduct({
           productName: data.name,
           brand: data.brand,
-          subCategories: [],
           selectedCategory: data.category,
           category: data.category,
           subCategory: data.subCategory,
@@ -267,10 +266,33 @@ const EditProduct = () => {
       ...prevProduct,
       selectedCategory: categoryId,
       category: selectedCategory.categoryName,
-      subCategories: [],
+      subCategories: [], // Clear subcategories when category changes
     }));
   };
 
+  useEffect(() => {
+    const fetchSubCategories = async () => {
+      try {
+        if (selectedCategory) {
+          const token = Cookies.get("token");
+          const response = await axios.get(
+            `${process.env.REACT_APP_BASE_URL}/admin/getSubCategoryByCategoryId/${selectedCategory}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+          setSubCategories(response.data.data); // Update to response.data.data
+        }
+      } catch (error) {
+        console.error("Error fetching subcategories:", error);
+        toast.error("Failed to fetch subcategories");
+      }
+    };
+
+    fetchSubCategories();
+  }, [selectedCategory]);
   return (
     <Box sx={{ display: "flex" }}>
       <SideBar />
@@ -359,7 +381,7 @@ const EditProduct = () => {
                   }
                   fullWidth
                 >
-                  {product.subCategories.map((subCategory) => (
+                  {subCategories.map((subCategory) => (
                     <MenuItem
                       key={subCategory._id}
                       value={subCategory.subCategoryName}
