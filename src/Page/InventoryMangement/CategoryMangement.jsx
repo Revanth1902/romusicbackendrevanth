@@ -286,31 +286,32 @@ const CategoryComponent = () => {
             onChange={handleImageChange}
           />
           <label htmlFor="category-image">
-            <Button
-              variant="contained"
-              component="span"
-              color="primary"
-              sx={{ background: "orange", marginTop: "10px" }}
-            >
-              Upload Image
-            </Button>
-          </label>
-          {imagePreview && (
-            <img
-              style={{ width: "200px", height: "200px" }}
-              src={imagePreview}
-              alt="Preview"
-            />
-          )}
-          {/* Image preview */}
-          <Button
-            variant="contained"
-            color="primary"
-            sx={{ background: "orange", marginTop: "10px" }}
-            onClick={createCategory}
-          >
-            Create Category
-          </Button>
+  <Button
+    variant="contained"
+    component="span"
+    color="primary"
+    sx={{ background: "orange", }}
+  >
+    Upload Image
+  </Button>
+</label>
+{imagePreview && (
+  <img
+    style={{ width: "200px", height: "200px", marginTop: "10px" }} 
+    src={imagePreview}
+    alt="Preview"
+  />
+)}
+
+<Button
+  variant="contained"
+  color="primary"
+  sx={{ background: "orange", marginLeft: "10%" }} 
+  onClick={createCategory}
+>
+  Create Category
+</Button>
+
         </div>
         <div>
           <h3>Create New Subcategory</h3>

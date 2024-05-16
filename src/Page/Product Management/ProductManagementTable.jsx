@@ -173,7 +173,7 @@ const ProductList = () => {
       style={{
         display: "flex",
         width: "100%",
-        
+
         flexDirection: "column",
       }}
     >
@@ -278,9 +278,27 @@ const ProductList = () => {
                   <TableCell>{product.stock}</TableCell>
                   <TableCell>
                     {product.isVerified === "true" ? (
-                      <CheckCircleIcon style={{ color: "green" }} />
+                      <p
+                        style={{
+                          backgroundColor: "#32936F29",
+                          textAlign: "center",
+                          borderRadius: "8px",
+                          padding: "4px 11px",
+                        }}
+                      >
+                        Active
+                      </p>
                     ) : (
-                      <CancelIcon style={{ color: "red" }} />
+                      <p
+                        style={{
+                          backgroundColor: " #FF578929",
+                          textAlign: "center",
+                          borderRadius: "8px",
+                          padding: "4px 11px",
+                        }}
+                      >
+                        Inactive
+                      </p>
                     )}
                   </TableCell>
 
