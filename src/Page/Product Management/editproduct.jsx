@@ -72,7 +72,7 @@ const EditProduct = () => {
         setProduct({
           productName: data.name,
           brand: data.brand,
-          selectedCategory: data.category,
+          selectedCategory: data.category._id,
           category: data.category,
           subCategory: data.subCategory,
           price: data.price,
@@ -87,6 +87,7 @@ const EditProduct = () => {
           isVerified: data.isVerified,
         });
         setIsVerified(data.isVerified);
+        setSelectedCategory(data.category._id); // Automatically select the category
       } catch (error) {
         console.error("Error fetching product:", error);
         toast.error("Failed to fetch product details");
@@ -215,7 +216,7 @@ const EditProduct = () => {
       setSubmitting(true);
       const token = Cookies.get("token");
       const formData = new FormData();
-  
+
       formData.append("name", product.productName);
       formData.append("brand", product.brand);
       formData.append("category", product.category);
@@ -227,9 +228,10 @@ const EditProduct = () => {
       formData.append("description", product.description);
       formData.append("specification", product.specification);
       formData.append("mrp", product.mrp);
+
       formData.append("warrantyPeriod", product.warrantyPeriod);
       formData.append("isVerified", product.isVerified);
-  
+
       // Convert all images to blobs before appending them
       const imagePromises = product.images.map(async (image, index) => {
         if (typeof image === "string") {
@@ -242,15 +244,15 @@ const EditProduct = () => {
           return { blob: image, index };
         }
       });
-  
+
       // Wait for all images to be processed
       const imageBlobs = await Promise.all(imagePromises);
-  
+
       // Append all images to formData
       imageBlobs.forEach(({ blob, index }) => {
         formData.append(`productImages`, blob, `image${index}.png`);
       });
-  
+
       // Make the API call with all images included
       const response = await axios.put(
         `${process.env.REACT_APP_BASE_URL}/admin/product/${id}`,
@@ -263,7 +265,7 @@ const EditProduct = () => {
           timeout: 60000, // Increase timeout to 60 seconds
         }
       );
-  
+
       if (response.data.success) {
         setOpen(true);
         toast.success("Product updated successfully");
@@ -278,13 +280,6 @@ const EditProduct = () => {
       setSubmitting(false);
     }
   };
-  
-  
-  
-  
-  
-  
-  
 
   const handleClose = () => {
     setOpen(false);
@@ -305,28 +300,27 @@ const EditProduct = () => {
   };
 
   useEffect(() => {
-    const fetchSubCategories = async () => {
+    const fetchSubcategories = async () => {
       try {
-        if (selectedCategory) {
-          const token = Cookies.get("token");
-          const response = await axios.get(
-            `${process.env.REACT_APP_BASE_URL}/admin/getSubCategoryByCategoryId/${selectedCategory}`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
-          setSubCategories(response.data.data); // Update to response.data.data
-        }
+        const token = Cookies.get("token");
+        const response = await axios.get(
+          `${process.env.REACT_APP_BASE_URL}/admin/getAllSubCategories`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        setSubCategories(response.data.subcategories);
       } catch (error) {
         console.error("Error fetching subcategories:", error);
-        toast.error("Failed to fetch subcategories");
+        setSubCategories([]);
       }
     };
 
-    fetchSubCategories();
-  }, [selectedCategory]);
+    fetchSubcategories();
+  }, []);
+
   return (
     <Box sx={{ display: "flex" }}>
       <SideBar />
@@ -353,79 +347,156 @@ const EditProduct = () => {
               }
               fullWidth
               margin="normal"
-              sx={{ width: "70%" }}
+              sx={{ width: "100%" }}
             />
-            <FormControl sx={{ width: "30%", marginTop: "0.6%" }}>
-              <InputLabel id="brand-label">Select Brand</InputLabel>
-              <Select
-                labelId="brand-label"
-                value={product.brand}
-                onChange={(e) =>
-                  setProduct((prevProduct) => ({
-                    ...prevProduct,
-                    brand: e.target.value,
-                  }))
-                }
-                fullWidth
-              >
-                {brands.map((brand) => (
-                  <MenuItem key={brand._id} value={brand.brandName}>
-                    {brand.brandName}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
           </Box>
-
           <Box
             sx={{
               display: "flex",
-              gap: 2,
               alignItems: "center",
+              justifyContent: "space-between",
+              margin: "2%",
             }}
           >
-            <FormControl sx={{ flex: 1, marginTop: "0.7%" }}>
-              <InputLabel id="category-label">Select Category</InputLabel>
-              <Select
-                labelId="category-label"
-                value={product.category}
-                onChange={handleCategoryChange}
-                fullWidth
-              >
-                {categories.map((category) => (
-                  <MenuItem key={category._id} value={category._id}>
-                    {category.categoryName}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            {product.selectedCategory && (
-              <FormControl sx={{ flex: 1, marginTop: "0.7%" }}>
-                <InputLabel id="subcategory-label">
-                  Select Subcategory
-                </InputLabel>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 2,
+                alignItems: "center",
+                border: "1px solid #ccc",
+                borderRadius: "8px",
+                padding: "16px",
+                boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
+                backgroundColor: "#f9f9f9",
+              }}
+            >
+              <span style={{ fontWeight: "bold", fontSize: "1.2em" }}>
+                You have Selected:
+                <span style={{ color: "#ff6f00", marginLeft: "0.5em" }}>
+                  {product.brand
+                    ? product.brand.charAt(0).toUpperCase() +
+                      product.brand.slice(1)
+                    : ""}
+                </span>
+              </span>
+              <FormControl sx={{ flex: 1, marginTop: "0.7%", width: "100%" }}>
+                <InputLabel id="brand-label">Select Brand</InputLabel>
                 <Select
-                  labelId="subcategory-label"
-                  value={product.subCategory}
+                  labelId="brand-label"
+                  value={product.brand}
                   onChange={(e) =>
                     setProduct((prevProduct) => ({
                       ...prevProduct,
-                      subCategory: e.target.value,
+                      brand: e.target.value,
                     }))
                   }
                   fullWidth
+                  variant="outlined"
                 >
-                  {subCategories.map((subCategory) => (
-                    <MenuItem
-                      key={subCategory._id}
-                      value={subCategory.subCategoryName}
-                    >
-                      {subCategory.subCategoryName}
+                  {brands.map((brand) => (
+                    <MenuItem key={brand._id} value={brand.brandName}>
+                      {brand.brandName}
                     </MenuItem>
                   ))}
                 </Select>
               </FormControl>
-            )}
+            </Box>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 2,
+                alignItems: "center",
+                border: "1px solid #ccc",
+                borderRadius: "8px",
+                padding: "16px",
+                boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
+                backgroundColor: "#f9f9f9",
+              }}
+            >
+              <span style={{ fontWeight: "bold", fontSize: "1.2em" }}>
+                You have Selected:
+                <span style={{ color: "#ff6f00", marginLeft: "0.5em" }}>
+                  {product.category
+                    ? product.category.charAt(0).toUpperCase() +
+                      product.category.slice(1)
+                    : ""}
+                </span>
+              </span>
+              <FormControl sx={{ flex: 1, marginTop: "0.7%", width: "100%" }}>
+                <InputLabel id="category-label">Select Category</InputLabel>
+                <Select
+                  labelId="category-label"
+                  value={product.category}
+                  onChange={handleCategoryChange}
+                  fullWidth
+                  variant="outlined"
+                >
+                  {categories.map((category) => (
+                    <MenuItem key={category._id} value={category._id}>
+                      {category.categoryName}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 2,
+                alignItems: "center",
+                border: "1px solid #ccc",
+                borderRadius: "8px",
+                padding: "16px",
+                boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
+                backgroundColor: "#f9f9f9",
+              }}
+            >
+              <span style={{ fontWeight: "bold", fontSize: "1.2em" }}>
+                You have Selected:
+                <span style={{ color: "#ff6f00", marginLeft: "0.5em" }}>
+                  {product.subCategory
+                    ? product.subCategory.charAt(0).toUpperCase() +
+                      product.subCategory.slice(1)
+                    : ""}
+                </span>
+              </span>
+              {product.subCategory && (
+                <FormControl sx={{ flex: 1, marginTop: "0.7%", width: "100%" }}>
+                  <InputLabel id="subcategory-label">
+                    Select Sub Category
+                  </InputLabel>
+                  <Select
+                    labelId="subcategory-label"
+                    value={product.subCategory}
+                    onChange={(e) =>
+                      setProduct((prevProduct) => ({
+                        ...prevProduct,
+                        subCategory: e.target.value,
+                      }))
+                    }
+                    fullWidth
+                  >
+                    {subCategories
+                      .filter(
+                        (subCategory) =>
+                          subCategory.categoryId === product.selectedCategory
+                      )
+                      .map((subCategory) => (
+                        <MenuItem
+                          key={subCategory._id}
+                          value={subCategory.subCategoryName}
+                        >
+                          {subCategory.subCategoryName}
+                        </MenuItem>
+                      ))}
+                  </Select>
+                </FormControl>
+              )}
+            </Box>
           </Box>
 
           <Box sx={{ display: "flex" }}>
