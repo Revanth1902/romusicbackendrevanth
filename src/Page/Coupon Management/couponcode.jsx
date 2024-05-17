@@ -1,30 +1,48 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import "./couponcode.css";
 import Cookies from "js-cookie";
 import SideBar from "../../Component/SideBar";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
-import { ArrowUpward, ArrowDownward } from "@mui/icons-material"; // Import icons for sorting
-import { Button } from "@mui/material";
+import {
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  ArrowUpward,
+  ArrowDownward,
+} from "@mui/icons-material";
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  TextField,
+  IconButton,
+  Typography,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+} from "@mui/material";
+import "./couponcode.css";
 
 const Coupons = () => {
   const [coupons, setCoupons] = useState([]);
   const [newCouponData, setNewCouponData] = useState({
     code: "",
-    amount: "", // Change initial value to empty string
+    amount: "",
     description: "",
-    limit: "", // Change initial value to empty string
+    limit: "",
   });
-
   const [editCouponData, setEditCouponData] = useState(null);
-  const [order, setOrder] = useState("asc"); // State for sorting order
-  const [orderBy, setOrderBy] = useState("code"); // State for sorting column
-  const [showAddCouponModal, setShowAddCouponModal] = useState(false); // State for showing add coupon modal
-  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false); // State for showing delete confirmation dialog
-  const [couponToDelete, setCouponToDelete] = useState(null); // State to store the coupon being deleted
+  const [order, setOrder] = useState("asc");
+  const [orderBy, setOrderBy] = useState("code");
+  const [showAddCouponModal, setShowAddCouponModal] = useState(false);
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [couponToDelete, setCouponToDelete] = useState(null);
 
   useEffect(() => {
     fetchAllCoupons();
@@ -73,7 +91,6 @@ const Coupons = () => {
       console.error("Error deleting coupon:", error);
       toast.error("Failed to delete coupon");
     } finally {
-      // Reset editCouponData and hide the delete confirmation dialog
       setEditCouponData(null);
       setShowDeleteConfirmation(false);
       fetchAllCoupons();
@@ -87,14 +104,17 @@ const Coupons = () => {
   const handleAddCoupon = async () => {
     try {
       if (
-        !Number.isInteger(newCouponData.amount) ||
-        !Number.isInteger(newCouponData.limit)
+        !Number.isInteger(parseInt(newCouponData.amount)) ||
+        !Number.isInteger(parseInt(newCouponData.limit))
       ) {
         toast.error("Amount and Limit must be integers");
         return;
       }
 
-      if (newCouponData.amount < 0 || newCouponData.limit < 0) {
+      if (
+        parseInt(newCouponData.amount) < 0 ||
+        parseInt(newCouponData.limit) < 0
+      ) {
         toast.error("Amount and Limit cannot be negative");
         return;
       }
@@ -118,8 +138,6 @@ const Coupons = () => {
         });
         fetchAllCoupons();
         toast.success("Coupon added successfully");
-
-        // Close Add Coupon Modal
         setShowAddCouponModal(false);
       }
     } catch (error) {
@@ -131,14 +149,17 @@ const Coupons = () => {
   const handleUpdateCoupon = async () => {
     try {
       if (
-        !Number.isInteger(editCouponData.amount) ||
-        !Number.isInteger(editCouponData.limit)
+        !Number.isInteger(parseInt(editCouponData.amount)) ||
+        !Number.isInteger(parseInt(editCouponData.limit))
       ) {
         toast.error("Amount and Limit must be integers");
         return;
       }
 
-      if (editCouponData.amount < 0 || editCouponData.limit < 0) {
+      if (
+        parseInt(editCouponData.amount) < 0 ||
+        parseInt(editCouponData.limit) < 0
+      ) {
         toast.error("Amount and Limit cannot be negative");
         return;
       }
@@ -194,153 +215,188 @@ const Coupons = () => {
       <div className="coupons-container">
         <Button
           variant="contained"
+          color="primary"
           onClick={() => setShowAddCouponModal(true)}
-          style={{ backgroundColor: "#ffa500", marginRight: "5%" }}
+          style={{ margin: "20px" }}
         >
           Add Coupon
         </Button>
-        <div className="coupons-list-header">
-          <div className="coupon-field" onClick={() => handleSort("code")}>
-            Code {getSortIcon("code")}
-          </div>
-          <div className="coupon-field" onClick={() => handleSort("amount")}>
-            Amount {getSortIcon("amount")}
-          </div>
-          <div
-            className="coupon-field"
-            onClick={() => handleSort("description")}
-          >
-            Description {getSortIcon("description")}
-          </div>
-          <div className="coupon-field" onClick={() => handleSort("limit")}>
-            Limit {getSortIcon("limit")}
-          </div>
-          <div className="coupon-field">Actions</div>
-        </div>
-
-        <div className="coupons-list-container">
-          <div className="coupons-list">
-            {coupons.length === 0 ? (
-              <p>No coupons available at this moment.</p>
-            ) : (
-              sortedCoupons.map((coupon) => (
-                <div key={coupon._id} className="coupon-item">
-                  <div className="coupon-field">{coupon.code}</div>
-                  <div className="coupon-field">{coupon.amount}</div>
-                  <div className="coupon-field">{coupon.description}</div>
-                  <div className="coupon-field">{coupon.limit}</div>
-                  <div className="coupon-field">
-                    <EditIcon
-                      className="edit-icon"
-                      onClick={() => handleEditCoupon(coupon)}
-                    />
-                    <DeleteIcon
-                      className="delete-icon"
-                      onClick={() => handleDeleteConfirmation(coupon)}
-                    />
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell onClick={() => handleSort("code")}>
+                  <Typography variant="subtitle1">
+                    Code {getSortIcon("code")}
+                  </Typography>
+                </TableCell>
+                <TableCell onClick={() => handleSort("amount")}>
+                  <Typography variant="subtitle1">
+                    Amount {getSortIcon("amount")}
+                  </Typography>
+                </TableCell>
+                <TableCell onClick={() => handleSort("description")}>
+                  <Typography variant="subtitle1">
+                    Description {getSortIcon("description")}
+                  </Typography>
+                </TableCell>
+                <TableCell onClick={() => handleSort("limit")}>
+                  <Typography variant="subtitle1">
+                    Limit {getSortIcon("limit")}
+                  </Typography>
+                </TableCell>
+                <TableCell>
+                  <Typography variant="subtitle1">Actions</Typography>
+                </TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {coupons.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5}>
+                    <Typography>
+                      No coupons available at this moment.
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                sortedCoupons.map((coupon) => (
+                  <TableRow key={coupon._id}>
+                    <TableCell>{coupon.code}</TableCell>
+                    <TableCell>{coupon.amount}</TableCell>
+                    <TableCell>{coupon.description}</TableCell>
+                    <TableCell>{coupon.limit}</TableCell>
+                    <TableCell>
+                      <IconButton onClick={() => handleEditCoupon(coupon)}>
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton
+                        onClick={() => handleDeleteConfirmation(coupon)}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
         <ToastContainer />
 
-        {showDeleteConfirmation && (
-          <div className="delete-confirmation-modal">
-            <div className="modal-content">
-              <h2>Confirm Deletion</h2>
-              <p>Are you sure you want to delete this coupon?</p>
-              <div className="delete-confirmation-buttons">
-                <button onClick={() => handleDeleteCoupon(couponToDelete._id)}>
-                  Delete
-                </button>
+        {/* Delete Confirmation Dialog */}
+        <Dialog
+          open={showDeleteConfirmation}
+          onClose={() => setShowDeleteConfirmation(false)}
+        >
+          <DialogTitle>Confirm Deletion</DialogTitle>
+          <DialogContent>
+            <Typography>
+              Are you sure you want to delete this coupon?
+            </Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              onClick={() => handleDeleteCoupon(couponToDelete._id)}
+              color="secondary"
+            >
+              Delete
+            </Button>
+            <Button
+              onClick={() => setShowDeleteConfirmation(false)}
+              color="primary"
+            >
+              Cancel
+            </Button>
+          </DialogActions>
+        </Dialog>
 
-                <button onClick={() => setShowDeleteConfirmation(false)}>
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Add Coupon Dialog */}
+        <Dialog
+          open={showAddCouponModal}
+          onClose={() => setShowAddCouponModal(false)}
+        >
+          <DialogTitle>Add Coupon</DialogTitle>
+          <DialogContent>
+            <TextField
+              label="Coupon Code"
+              value={newCouponData.code}
+              onChange={(e) =>
+                setNewCouponData({ ...newCouponData, code: e.target.value })
+              }
+              fullWidth
+              margin="normal"
+            />
+            <TextField
+              label="Amount"
+              type="number"
+              value={newCouponData.amount}
+              onChange={(e) =>
+                setNewCouponData({
+                  ...newCouponData,
+                  amount: e.target.value < 0 ? 0 : Math.floor(e.target.value),
+                })
+              }
+              fullWidth
+              margin="normal"
+            />
+            <TextField
+              label="Description"
+              value={newCouponData.description}
+              onChange={(e) =>
+                setNewCouponData({
+                  ...newCouponData,
+                  description: e.target.value,
+                })
+              }
+              fullWidth
+              margin="normal"
+            />
+            <TextField
+              label="Limit"
+              type="number"
+              value={newCouponData.limit}
+              onChange={(e) =>
+                setNewCouponData({
+                  ...newCouponData,
+                  limit: e.target.value < 0 ? 0 : Math.floor(e.target.value),
+                })
+              }
+              fullWidth
+              margin="normal"
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button
+              onClick={() => {
+                setShowAddCouponModal(false);
+                setNewCouponData({
+                  code: "",
+                  amount: "",
+                  description: "",
+                  limit: "",
+                });
+              }}
+              color="primary"
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleAddCoupon} color="primary">
+              Submit
+            </Button>
+          </DialogActions>
+        </Dialog>
 
-        {/* Add Coupon Modal */}
-        {showAddCouponModal && (
-          <div className="add-coupon-modal">
-            <div className="modal-content">
-              <h2>Add Coupon</h2>
-              <input
-                type="text"
-                placeholder="Coupon Code"
-                value={newCouponData.code}
-                onChange={(e) =>
-                  setNewCouponData({ ...newCouponData, code: e.target.value })
-                }
-              />
-              <input
-                type="number"
-                placeholder="Amount"
-                value={newCouponData.amount}
-                onChange={(e) =>
-                  setNewCouponData({
-                    ...newCouponData,
-                    amount: e.target.value < 0 ? 0 : Math.floor(e.target.value),
-                  })
-                }
-                min="0"
-              />
-              <input
-                type="text"
-                placeholder="Description"
-                value={newCouponData.description}
-                onChange={(e) =>
-                  setNewCouponData({
-                    ...newCouponData,
-                    description: e.target.value,
-                  })
-                }
-              />
-              <input
-                type="number"
-                placeholder="Limit"
-                value={newCouponData.limit}
-                onChange={(e) =>
-                  setNewCouponData({
-                    ...newCouponData,
-                    limit: e.target.value < 0 ? 0 : Math.floor(e.target.value),
-                  })
-                }
-                min="0"
-              />
-
-              <button
-                onClick={() => {
-                  setShowAddCouponModal(false);
-                  setNewCouponData({
-                    code: "",
-                    amount: "",
-                    description: "",
-                    limit: "",
-                  });
-                }}
-              >
-                Cancel
-              </button>
-
-              <button onClick={handleAddCoupon}>Submit</button>
-            </div>
-          </div>
-        )}
-
-        {/* Edit Coupon Modal */}
+        {/* Edit Coupon Dialog */}
         {editCouponData && (
-          <div className="edit-coupon-modal">
-            <div className="modal-content">
-              <h2>Edit Coupon</h2>
-              <input
-                type="text"
-                placeholder="Coupon Code"
+          <Dialog
+            open={Boolean(editCouponData)}
+            onClose={() => setEditCouponData(null)}
+          >
+            <DialogTitle>Edit Coupon</DialogTitle>
+            <DialogContent>
+              <TextField
+                label="Coupon Code"
                 value={editCouponData.code}
                 onChange={(e) =>
                   setEditCouponData({
@@ -348,10 +404,12 @@ const Coupons = () => {
                     code: e.target.value,
                   })
                 }
+                fullWidth
+                margin="normal"
               />
-              <input
+              <TextField
+                label="Amount"
                 type="number"
-                placeholder="Amount"
                 value={editCouponData.amount}
                 onChange={(e) =>
                   setEditCouponData({
@@ -359,11 +417,11 @@ const Coupons = () => {
                     amount: e.target.value < 0 ? 0 : Math.floor(e.target.value),
                   })
                 }
-                min="0"
+                fullWidth
+                margin="normal"
               />
-              <input
-                type="text"
-                placeholder="Description"
+              <TextField
+                label="Description"
                 value={editCouponData.description}
                 onChange={(e) =>
                   setEditCouponData({
@@ -371,10 +429,12 @@ const Coupons = () => {
                     description: e.target.value,
                   })
                 }
+                fullWidth
+                margin="normal"
               />
-              <input
+              <TextField
+                label="Limit"
                 type="number"
-                placeholder="Limit"
                 value={editCouponData.limit}
                 onChange={(e) =>
                   setEditCouponData({
@@ -382,12 +442,19 @@ const Coupons = () => {
                     limit: e.target.value < 0 ? 0 : Math.floor(e.target.value),
                   })
                 }
-                min="0"
+                fullWidth
+                margin="normal"
               />
-              <button onClick={handleUpdateCoupon}>Update</button>
-              <button onClick={() => setEditCouponData(null)}>Cancel</button>
-            </div>
-          </div>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleUpdateCoupon} color="primary">
+                Update
+              </Button>
+              <Button onClick={() => setEditCouponData(null)} color="primary">
+                Cancel
+              </Button>
+            </DialogActions>
+          </Dialog>
         )}
       </div>
     </>

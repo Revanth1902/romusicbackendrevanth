@@ -181,6 +181,9 @@ const PaymentsManagementnewproduct = () => {
       formData.append("specification", specification);
       formData.append("mrp", mrp);
       formData.append("warrantyPeriod", warrantyPeriod);
+      const vendorId = " 6625ee432314fa0044c445cd";
+
+    formData.append("vendorId", vendorId);
       for (let imag of images) {
         formData.append(`productImages`, imag);
       }

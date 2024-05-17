@@ -48,20 +48,21 @@ const BannerComponent = () => {
       toast.error("Please select at least 1 image, category, and banner type");
       return;
     }
-  
+
     setLoading(true);
     const formData = new FormData();
-  
+
     filesToUpload.forEach((file) => {
       formData.append("bannerImage", file);
     });
-  
+
     selectedCategories.forEach((category) => {
       formData.append("categories", category);
     });
-  
+
     formData.append("subCategory", selectedOption);
-  
+    
+
     try {
       const token = Cookies.get("token"); // Get the token from cookies
       const res = await fetch(
@@ -74,10 +75,10 @@ const BannerComponent = () => {
           },
         }
       );
-  
+
       const data = await res.json();
       setLoading(false);
-  
+
       if (res.ok) {
         toast.success("Banner added successfully");
         // Navigate to "/inventorymanagement" after successful banner creation
@@ -90,8 +91,6 @@ const BannerComponent = () => {
       toast.error("An error occurred while adding the banner");
     }
   };
-  
-  
 
   const handleImageChange = (e) => {
     const files = e.target.files;
@@ -100,7 +99,6 @@ const BannerComponent = () => {
     // Clear selected categories when changing the image
     setSelectedCategories([]);
   };
-  
 
   const handleRemoveImage = (index) => {
     setFilesToUpload((prev) => prev.filter((_, i) => i !== index));
@@ -120,7 +118,7 @@ const BannerComponent = () => {
     const maxImages = 6;
     const displayedFiles = filesToUpload.slice(0, maxImages); // Limit to maximum 6 images
     const rows = [];
-  
+
     for (let i = 0; i < displayedFiles.length; i += 2) {
       rows.push(
         <div key={i} style={{ display: "flex", marginBottom: "20px" }}>
@@ -132,7 +130,11 @@ const BannerComponent = () => {
                 </Button>
                 <img
                   className="h-40 object-cover"
-                  style={{ width: "150px", height: "150px", marginRight: "10px" }}
+                  style={{
+                    width: "150px",
+                    height: "150px",
+                    marginRight: "10px",
+                  }}
                   src={URL.createObjectURL(displayedFiles[i])}
                   alt={`Image ${i}`}
                 />
@@ -171,7 +173,11 @@ const BannerComponent = () => {
                 </Button>
                 <img
                   className="h-40 object-cover"
-                  style={{ width: "150px", height: "150px", marginRight: "10px" }}
+                  style={{
+                    width: "150px",
+                    height: "150px",
+                    marginRight: "10px",
+                  }}
                   src={URL.createObjectURL(displayedFiles[i + 1])}
                   alt={`Image ${i + 1}`}
                 />
@@ -205,10 +211,9 @@ const BannerComponent = () => {
         </div>
       );
     }
-  
+
     return <>{rows}</>;
   };
-  
 
   return (
     <>
@@ -219,7 +224,7 @@ const BannerComponent = () => {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          margin:"9%"
+          margin: "9%",
         }}
       >
         <div className="text-center">
@@ -278,7 +283,7 @@ const BannerComponent = () => {
             )}
           </Button>
         </div>
-        <ToastContainer/>
+        <ToastContainer />
       </div>
     </>
   );

@@ -85,7 +85,7 @@ const BarChartOne = () => {
             Total Orders
             <br />
             <Typography paragraph style={{ fontWeight: "800" }}>
-              <CurrencyRupeeIcon style={{ fontSize: "15px" }} />
+             
               {data && data.count}
               <span
                 style={{ color: "green", fontSize: "12px", fontWeight: "200" }}

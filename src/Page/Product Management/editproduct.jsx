@@ -30,7 +30,7 @@ const capitalizeFirstLetter = (string) => {
 const EditProduct = () => {
   const navigate = useNavigate();
   const { id } = useParams();
-
+  const [isVerified, setIsVerified] = useState(false);
   const [product, setProduct] = useState({
     productName: "",
     brand: "",
@@ -43,6 +43,7 @@ const EditProduct = () => {
     stock: "",
     bestSeller: false,
     featured: false,
+    isVerified: false,
     description: "",
     specification: "",
     warrantyPeriod: "",
@@ -83,7 +84,9 @@ const EditProduct = () => {
           specification: data.specification,
           warrantyPeriod: data.warrantyPeriod,
           images: data.productImages,
+          isVerified: data.isVerified,
         });
+        setIsVerified(data.isVerified);
       } catch (error) {
         console.error("Error fetching product:", error);
         toast.error("Failed to fetch product details");
@@ -167,6 +170,15 @@ const EditProduct = () => {
     }
   };
 
+  const handleImageRemove = (index) => {
+    const updatedImages = [...product.images];
+    updatedImages.splice(index, 1);
+    setProduct((prevProduct) => ({
+      ...prevProduct,
+      images: updatedImages,
+    }));
+  };
+
   const handlePriceChange = (e) => {
     const { value } = e.target;
     if (/^\d+$/.test(value) || value === "") {
@@ -197,21 +209,13 @@ const EditProduct = () => {
     }
   };
 
-  const handleImageRemove = (index) => {
-    const updatedImages = [...product.images];
-    updatedImages.splice(index, 1);
-    setProduct((prevProduct) => ({
-      ...prevProduct,
-      images: updatedImages,
-    }));
-  };
-
   const handleSubmit = async () => {
     try {
       if (submitting) return;
       setSubmitting(true);
       const token = Cookies.get("token");
       const formData = new FormData();
+  
       formData.append("name", product.productName);
       formData.append("brand", product.brand);
       formData.append("category", product.category);
@@ -224,19 +228,42 @@ const EditProduct = () => {
       formData.append("specification", product.specification);
       formData.append("mrp", product.mrp);
       formData.append("warrantyPeriod", product.warrantyPeriod);
-      for (let imag of product.images) {
-        formData.append(`productImages`, imag);
-      }
+      formData.append("isVerified", product.isVerified);
+  
+      // Convert all images to blobs before appending them
+      const imagePromises = product.images.map(async (image, index) => {
+        if (typeof image === "string") {
+          // If image is a URL, fetch and convert to blob
+          const response = await fetch(image);
+          const blob = await response.blob();
+          return { blob, index };
+        } else {
+          // If image is already a blob, return it directly
+          return { blob: image, index };
+        }
+      });
+  
+      // Wait for all images to be processed
+      const imageBlobs = await Promise.all(imagePromises);
+  
+      // Append all images to formData
+      imageBlobs.forEach(({ blob, index }) => {
+        formData.append(`productImages`, blob, `image${index}.png`);
+      });
+  
+      // Make the API call with all images included
       const response = await axios.put(
         `${process.env.REACT_APP_BASE_URL}/admin/product/${id}`,
         formData,
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
+            // Axios sets the correct 'Content-Type' for multipart/form-data
           },
+          timeout: 60000, // Increase timeout to 60 seconds
         }
       );
+  
       if (response.data.success) {
         setOpen(true);
         toast.success("Product updated successfully");
@@ -251,6 +278,13 @@ const EditProduct = () => {
       setSubmitting(false);
     }
   };
+  
+  
+  
+  
+  
+  
+  
 
   const handleClose = () => {
     setOpen(false);
@@ -488,6 +522,20 @@ const EditProduct = () => {
               }
               label="Featured"
             />
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={product.isVerified} // Check if product is verified
+                  onChange={(e) =>
+                    setProduct((prevProduct) => ({
+                      ...prevProduct,
+                      isVerified: e.target.checked,
+                    }))
+                  }
+                />
+              }
+              label="Verified"
+            />
           </Box>
 
           <TextField
@@ -532,58 +580,70 @@ const EditProduct = () => {
             <Box
               sx={{
                 display: "flex",
+                flexDirection: "column",
                 gap: 3,
-                justifyContent: "space-between",
-                flexWrap: "wrap",
               }}
             >
-              {[...Array(6)].map((_, index) => (
-                <div
-                  key={index}
-                  style={{
-                    flexBasis: "30%",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    gap: 1,
-                  }}
-                >
-                  <input
-                    accept="image/*"
-                    style={{ display: "none" }}
-                    id={`image-upload-${index}`}
-                    type="file"
-                    onChange={(e) => handleImageChange(e.target.files, index)}
-                  />
-                  <label htmlFor={`image-upload-${index}`}>
-                    <Button variant="contained" component="span">
-                      Select Image {index + 1}
-                    </Button>
-                  </label>
-                  {product.images[index] && (
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                      }}
-                    >
-                      <img
-                        src={product.images[index]}
-                        alt={`Image ${index + 1}`}
-                        style={{ width: "100px", height: "auto" }}
-                      />
-
-                      <Button
-                        variant="outlined"
-                        onClick={() => handleImageRemove(index)}
-                        sx={{ ml: 1 }}
-                      >
-                        Remove
+              <Box
+                sx={{
+                  display: "flex",
+                  gap: 3,
+                  justifyContent: "space-between",
+                  flexWrap: "wrap",
+                }}
+              >
+                {[...Array(6)].map((_, index) => (
+                  <div
+                    key={index}
+                    style={{
+                      flexBasis: "30%",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      gap: 1,
+                    }}
+                  >
+                    <input
+                      accept="image/*"
+                      style={{ display: "none" }}
+                      id={`image-upload-${index}`}
+                      type="file"
+                      onChange={(e) => handleImageChange(e.target.files, index)}
+                    />
+                    <label htmlFor={`image-upload-${index}`}>
+                      <Button variant="contained" component="span">
+                        Select Image {index + 1}
                       </Button>
-                    </div>
-                  )}
-                </div>
-              ))}
+                    </label>
+                    {product.images[index] && (
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                        }}
+                      >
+                        <img
+                          src={
+                            typeof product.images[index] === "string"
+                              ? product.images[index]
+                              : URL.createObjectURL(product.images[index])
+                          }
+                          alt={`Image ${index + 1}`}
+                          style={{ width: "100px", height: "auto" }}
+                        />
+
+                        <Button
+                          variant="outlined"
+                          onClick={() => handleImageRemove(index)}
+                          sx={{ ml: 1 }}
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </Box>
             </Box>
           </Box>
 
